@@ -1,23 +1,22 @@
+package Server;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 
-/**
- * Created by william on 15-03-2017.
- */
 public class Peer {
 
-    public MulticastSocket socket;
-    DatagramPacket packet;
+    public static MulticastSocket socket;
+    static DatagramPacket packet;
 
-    public InetAddress address;
+    public static InetAddress address;
 
-    public int port;
+    public static int port;
 
-    byte[] buf = new byte[256];
+    static byte[] buf = new byte[256];
 
-    public void main(String[] args) {
+    public static void main(String[] args) {
 
         if(args.length != 6){
             printUsage(args);
@@ -25,13 +24,9 @@ public class Peer {
         } else{
             init(args);
         }
-
+        boolean finish = false;
         do {
-
-
             try {
-
-
                 packet = new DatagramPacket(buf, buf.length);
                 socket.receive(packet);
 
@@ -40,7 +35,7 @@ public class Peer {
             } catch (IOException err) {
                 err.printStackTrace();
             }
-        } while(true);
+        } while(!finish);
 
         try{
             socket.leaveGroup(address);
@@ -52,7 +47,7 @@ public class Peer {
 
     }
 
-    public void init(String[] args){
+    public static void init(String[] args){
         try{
             address = InetAddress.getByName(args[1]);
             port = Integer.parseInt(args[2]);
@@ -66,6 +61,6 @@ public class Peer {
 
     public static void printUsage(String[] args) {
         System.out.println("Wrong number of arguments");
-        System.out.println(args[0] + " mcAddress mcPort mdbAddress mdbPort mdrAddress mdrPort");
+        System.out.println("Usage: ./peer mcAddress mcPort mdbAddress mdbPort mdrAddress mdrPort");
     }
 }
