@@ -10,25 +10,39 @@ public class Peer {
     public static MulticastSocket socket;
     static DatagramPacket packet;
 
-    public static InetAddress address;
+    public static InetAddress mcAddress;
+    public static InetAddress mdbAddress;
+    public static InetAddress mdrAddress;
 
-    public static int port;
+    public static int mcPort;
+    public static int mdbPort;
+    public static int mdrPort;
 
-    static byte[] buf = new byte[256];
+    public static String protVersion;
+    public static String id;
+    public static String remObj;
+
+
+    static byte[] buf = new byte[64000];
 
     public static void main(String[] args) {
 
-        if(args.length != 6){
-            printUsage(args);
-            return;
-        } else{
+//        if(args.length != 6){
+//            printUsage(args);
+//            return;
+//        } else{
             init(args);
-        }
+//        }
         boolean finish = false;
         do {
             try {
                 packet = new DatagramPacket(buf, buf.length);
                 socket.receive(packet);
+                int recPort = packet.getPort();
+                String receive = new String(packet.getData(), 0, packet.getLength());
+                System.out.println("message from port " + recPort);
+                System.out.println(receive.length());
+                System.out.println(receive);
 
                 //analyze
 
@@ -38,7 +52,7 @@ public class Peer {
         } while(!finish);
 
         try{
-            socket.leaveGroup(address);
+            socket.leaveGroup(mcAddress);
 
         }catch (IOException err) {
             err.printStackTrace();
@@ -49,10 +63,13 @@ public class Peer {
 
     public static void init(String[] args){
         try{
-            address = InetAddress.getByName(args[1]);
-            port = Integer.parseInt(args[2]);
-            socket = new MulticastSocket(port);
-            socket.joinGroup(address);
+            mcAddress = InetAddress.getByName(args[0]);
+            mcPort = Integer.parseInt(args[1]);
+            socket = new MulticastSocket(mcPort);
+            socket.joinGroup(mcAddress);
+
+
+            System.out.println("Joined group");
 
         }catch (IOException ex) {
             ex.printStackTrace();
