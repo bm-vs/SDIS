@@ -1,19 +1,18 @@
 package SubProtocols;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.net.SocketTimeoutException;
 
 public class Backup {
 
-    public final int MAX_SIZE = 64000;
+    private final int MAX_SIZE = 64000;
+    private final int SEND_REPEAT = 5;
     public String filePath;
     public int replDegree;
-    BufferedReader in;
+    RandomAccessFile in;
     MulticastSocket socket;
     InetAddress address;
     int port;
@@ -25,7 +24,7 @@ public class Backup {
         this.address = address;
         this.port = port;
         try {
-            in = new BufferedReader(new FileReader(filePath));
+            in = new RandomAccessFile(filePath, "r");
         } catch (FileNotFoundException err){
             System.err.println("File not found");
         }
@@ -35,8 +34,11 @@ public class Backup {
 
     public void transfer(){
 
-        int i = 0;
-        char[] buf = new char[MAX_SIZE];
+        int i = 0, repeats = 0;
+        int timeout = 1000; //in miliseconds
+        byte[] buf = new byte[MAX_SIZE];
+        DatagramPacket receive = new DatagramPacket(buf, buf.length);
+        String message;
         do {
             try {
                 i = in.read(buf, 0, MAX_SIZE);
@@ -48,24 +50,42 @@ public class Backup {
 
 
             //create packet
-            String msg = new String(buf);
-            byte[] byteArray = new byte[MAX_SIZE];
-            byteArray = msg.getBytes();
-            DatagramPacket packet = new DatagramPacket(byteArray, byteArray.length, address, port);
+            DatagramPacket packet = new DatagramPacket(buf, buf.length, address, port);
             int confirmations;
 
             do{
                 confirmations = 0;
                 try{
                     socket.send(packet);
+                    try {
+                        socket.setSoTimeout(timeout);
+
+                        //count confirmation messages during timeout after sending packet
+                        while (confirmations < replDegree) {
+                            socket.receive(receive);
+                            message = new String(receive.getData());
+                            if (getReply(message)) {
+                                confirmations++;
+                            }
+                        }
+                    } catch (SocketTimeoutException err){
+                        if(confirmations < replDegree) {
+                            timeout *=2;
+                            repeats++;
+                        }
+                    }
                 }catch (IOException err){
 
                 }
 
-                //collect stored messages during one second after sending packet
 
-            } while(confirmations < replDegree);
+            } while(confirmations < replDegree && repeats < SEND_REPEAT);
 
-        } while(i == 64000);
+        } while(i == 64000 || repeats < SEND_REPEAT);
+    }
+
+    //see if message is STORED
+    public boolean getReply(String receive){
+        return false;
     }
 }
