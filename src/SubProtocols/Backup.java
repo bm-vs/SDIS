@@ -1,12 +1,14 @@
 package SubProtocols;
 
+import Header.Type;
+
 import java.io.*;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.SocketTimeoutException;
 
-public class Backup {
+public class Backup extends Default{
 
     private final int MAX_SIZE = 64000;
     private final int SEND_REPEAT = 5;
@@ -47,7 +49,7 @@ public class Backup {
 
             }
             //join data with header
-
+            String header
 
             //create packet
             DatagramPacket packet = new DatagramPacket(buf, buf.length, address, port);
@@ -88,4 +90,40 @@ public class Backup {
     public boolean getReply(String receive){
         return false;
     }
+
+
+    public static String createHeader(Type messageType, int chunkNo, int fileId){
+        String header = new String();
+
+        //this will go to a parent class ?
+        String common = protVersion + " " + senderId + " " + fileId;
+        switch(messageType){
+            case PUTCHUNK:
+                header = "PUTCHUNK ";
+                common += " " +
+                ;
+                break;
+            case STORED:
+                header = "STORED ";
+                break;
+            case GETCHUNK:|
+                header = "GETCHUNK ";
+                break;
+            case CHUNK:
+                header = "CHUNK ";
+                break;
+            case DELETE:
+                header = "DELETE ";
+                break;
+            case REMOVED:
+                header = "REMOVED ";
+                break;
+        }
+
+        ///////////////////////////
+
+        header += common;
+
+        return header;
+    };
 }
