@@ -46,7 +46,7 @@ public class Peer {
 //        }
         boolean finish = false;
 
-        new Thread(mcChannel.receive());
+        //new Thread(mcChannel.receive());
 
 //        do {
 //            try {

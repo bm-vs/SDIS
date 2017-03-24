@@ -7,6 +7,7 @@ public class Default {
     }
 
     public static String getCommonHeader(){
-        String co
+        //String co
+        return "";
     }
 }

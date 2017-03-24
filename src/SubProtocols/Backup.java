@@ -49,7 +49,7 @@ public class Backup extends Default{
 
             }
             //join data with header
-            String header
+            //String header
 
             //create packet
             DatagramPacket packet = new DatagramPacket(buf, buf.length, address, port);
@@ -96,17 +96,17 @@ public class Backup extends Default{
         String header = new String();
 
         //this will go to a parent class ?
-        String common = protVersion + " " + senderId + " " + fileId;
+        String common = ""; //= protVersion + " " + senderId + " " + fileId;
         switch(messageType){
             case PUTCHUNK:
                 header = "PUTCHUNK ";
                 common += " " +
-                ;
+                "";
                 break;
             case STORED:
                 header = "STORED ";
                 break;
-            case GETCHUNK:|
+            case GETCHUNK:
                 header = "GETCHUNK ";
                 break;
             case CHUNK:
