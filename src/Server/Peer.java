@@ -40,6 +40,7 @@ public class Peer {
             socket = new MulticastSocket();
         }catch(IOException err){
             System.err.println(err);
+
         }
         mcThread = new Thread(mcChannel);
         mdbThread = new Thread(mdbChannel);
