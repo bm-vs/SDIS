@@ -1,6 +1,7 @@
 package SubProtocols;
 
 import Header.Type;
+import Server.PeerId;
 
 import java.io.*;
 import java.net.DatagramPacket;
@@ -8,7 +9,7 @@ import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.SocketTimeoutException;
 
-public class Backup extends Default{
+public class Backup extends SubProtocol {
 
     private final int MAX_SIZE = 64000;
     private final int SEND_REPEAT = 5;
@@ -19,7 +20,8 @@ public class Backup extends Default{
     InetAddress address;
     int port;
 
-    public Backup(String filePath, int replDegree, MulticastSocket socket, InetAddress address, int port){
+    public Backup(PeerId peer, int fileId, String filePath, int replDegree, MulticastSocket socket, InetAddress address, int port){
+        super(peer, fileId);
         this.filePath = filePath;
         this.replDegree = replDegree;
         this.socket = socket;
@@ -37,21 +39,32 @@ public class Backup extends Default{
     public void transfer(){
 
         int i = 0, repeats = 0;
+        int numChunks = 0;
         int timeout = 1000; //in miliseconds
-        byte[] buf = new byte[MAX_SIZE];
-        DatagramPacket receive = new DatagramPacket(buf, buf.length);
+        byte[] body = new byte[MAX_SIZE];
+        byte[] buf;
+        DatagramPacket receive = new DatagramPacket(body, body.length);
         String message;
         do {
             try {
-                i = in.read(buf, 0, MAX_SIZE);
+                i = in.read(body, 0, MAX_SIZE);
+                numChunks++;
                 System.out.println(i);
             } catch (IOException err) {
-
+                System.err.println(err);
             }
             //join data with header
-            String header
+            String header = createHeader(numChunks);
+            byte[] headerArray = header.getBytes();
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            try {
+                outputStream.write(headerArray);
+                outputStream.write(body);
+            } catch(IOException err){
+                System.err.println(err);
+            }
+            buf = outputStream.toByteArray();
 
-            //create packet
             DatagramPacket packet = new DatagramPacket(buf, buf.length, address, port);
             int confirmations;
 
@@ -60,6 +73,7 @@ public class Backup extends Default{
                 try{
                     socket.send(packet);
                     try {
+                        Thread.sleep(timeout);
                         socket.setSoTimeout(timeout);
 
                         //count confirmation messages during timeout after sending packet
@@ -70,7 +84,7 @@ public class Backup extends Default{
                                 confirmations++;
                             }
                         }
-                    } catch (SocketTimeoutException err){
+                    } catch (InterruptedException err){
                         if(confirmations < replDegree) {
                             timeout *=2;
                             repeats++;
@@ -92,38 +106,9 @@ public class Backup extends Default{
     }
 
 
-    public static String createHeader(Type messageType, int chunkNo, int fileId){
-        String header = new String();
-
-        //this will go to a parent class ?
-        String common = protVersion + " " + senderId + " " + fileId;
-        switch(messageType){
-            case PUTCHUNK:
-                header = "PUTCHUNK ";
-                common += " " +
-                ;
-                break;
-            case STORED:
-                header = "STORED ";
-                break;
-            case GETCHUNK:|
-                header = "GETCHUNK ";
-                break;
-            case CHUNK:
-                header = "CHUNK ";
-                break;
-            case DELETE:
-                header = "DELETE ";
-                break;
-            case REMOVED:
-                header = "REMOVED ";
-                break;
-        }
-
-        ///////////////////////////
-
-        header += common;
-
+    public String createHeader(int chunkNo){
+        String common = super.getCommonHeader();
+        String header = "PUTCHUNK " + common + " " + chunkNo + " " + replDegree + " CRLFCRLF";
         return header;
     };
 }
