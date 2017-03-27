@@ -1,6 +1,5 @@
 package Channel;
 
-
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -47,5 +46,11 @@ public class Channel implements Runnable {
         String pac = new String(packet.getData());
         packetData = pac.split("CRLFCRLF", 2);
         String header = packetData[0];
+    }
+
+    public void startStoredCount(Thread thread, int fileId, int chunkNo, int replDegree){
+    }
+
+    public int getStoredMessages(int fileId, int chunkNo){
     }
 }
