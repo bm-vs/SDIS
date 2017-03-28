@@ -33,8 +33,8 @@ public class TestClient {
             InetAddress address = InetAddress.getByName(args[0]);
             MulticastSocket socket = new MulticastSocket(port);
             socket.joinGroup(address);
-
-            Backup backup = new Backup(peer, 1, file, repDeg, socket, address, port);
+            Thread t;
+            Backup backup = new Backup(peer, 1, file, repDeg, socket, address, port, t);
             backup.transfer();
             socket.leaveGroup(address);
 

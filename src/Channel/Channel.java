@@ -1,15 +1,19 @@
 package Channel;
 
+import Server.Peer;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 
 public class Channel implements Runnable {
-    int port;
-    InetAddress address;
+    public int port;
+    public InetAddress address;
     MulticastSocket socket;
-    String[] packetData;
+    String[] packetHeader;
+    String packetBody;
+    Peer peer;
 
     public Channel(int port, String address){
         try {
@@ -44,13 +48,15 @@ public class Channel implements Runnable {
 
     public void handle(DatagramPacket packet){
         String pac = new String(packet.getData());
-        packetData = pac.split("CRLFCRLF", 2);
-        String header = packetData[0];
+        String[] packetData = pac.split("CRLFCRLF", 2);
+        packetHeader = packetData[0].split("\\s+");
+        packetBody = packetData[1];
     }
 
     public void startStoredCount(Thread thread, int fileId, int chunkNo, int replDegree){
     }
 
     public int getStoredMessages(int fileId, int chunkNo){
+        return 5;
     }
 }

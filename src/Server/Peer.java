@@ -61,6 +61,17 @@ public class Peer {
         peer = new PeerId(Integer.parseInt(args[7]), args[6]);
     }
 
+    public static void sendToMC(String message, Channel channel){
+        byte[]buf = message.getBytes();
+
+        DatagramPacket packet = new DatagramPacket(buf, buf.length, channel.address, channel.port);
+        try {
+            socket.send(packet);
+        }catch(IOException err){
+            System.err.println(err);
+        }
+    }
+
     public static void printUsage(String[] args) {
         System.out.println("Wrong number of arguments");
         System.out.println("Usage: ./peer mcAddress mcPort mdbAddress mdbPort mdrAddress mdrPort");

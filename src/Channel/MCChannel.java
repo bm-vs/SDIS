@@ -3,6 +3,7 @@ package Channel;
 
 import Chunks.ChunkId;
 import Chunks.ChunkInfo;
+import Header.Field;
 
 import java.net.DatagramPacket;
 import java.util.HashMap;
@@ -22,11 +23,9 @@ public class MCChannel extends Channel{
     public void handle(DatagramPacket packet){
         super.handle(packet);
 
-        String header = packetData[0];
-        String[] headerFields = header.split(" +");
-        switch(headerFields[0]){
+        switch(packetHeader[Field.type]){
             case "STORED":
-                storedMessage(headerFields);
+                storedMessage(packetHeader);
                 break;
             case "GETCHUNK":
                 break;

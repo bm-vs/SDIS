@@ -13,8 +13,8 @@ public class Backup extends SubProtocol {
 
     private final int MAX_SIZE = 64000;
     private final int SEND_REPEAT = 5;
-    public String filePath;
-    public int replDegree;
+    private String filePath;
+    private int replDegree;
     RandomAccessFile in;
     MulticastSocket socket;
     InetAddress address;
@@ -60,7 +60,7 @@ public class Backup extends SubProtocol {
             do{
                 timeout *= 2;
                 try{
-                    peer.mcChannel.startStoredCount(thread, fileId, numChunks, replDegree);
+                    //peer.mcChannel.startStoredCount(thread, fileId, numChunks, replDegree);
                     socket.send(packet);
                     try {
                         Thread.sleep(timeout);
