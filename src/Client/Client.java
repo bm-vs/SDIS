@@ -1,9 +1,12 @@
 package Client;
 
 import SubProtocols.Backup;
+import Server.RMIService;
 
 import java.io.IOException;
 import java.net.*;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.util.Scanner;
 
 public class Client {
@@ -24,23 +27,35 @@ public class Client {
         // Get the address that we are going to connect to.
         System.out.println("Started client");
 
-        // Create a new Multicast socket (that will allow other sockets/programs
-        // to join it as well.
+        
+        // Start RMI
         try {
-            InetAddress address = InetAddress.getByName(args[0]);
-            MulticastSocket socket = new MulticastSocket(port);
-            socket.joinGroup(address);
+            String name = "Peer";
+            Registry registry = LocateRegistry.getRegistry("localhost");
+        	RMIService peer = (RMIService) registry.lookup(name);
 
-            switch (operation) {
-                case "BACKUP":
-                    //Backup backup = new Backup(op1, op2, socket, address, port);
-                    //backup.transfer();
-                    break;
-            }
+        	boolean status = false;
+        	
+        	switch (operation) {
+	            case "BACKUP":
+	            	status = peer.backup();
+	                break;
+	            case "RESTORE":
+	            	status = peer.restore();
+	                break;
+	            case "DELETE":
+	            	status = peer.delete();
+	                break;
+	            case "RECLAIM":
+	            	status = peer.reclaim();
+	                break;
+        	}
+        	
+        	if(status) {
+        		System.out.println("Answer received");
+        	}
 
-            socket.leaveGroup(address);
-
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
     }

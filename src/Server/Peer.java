@@ -8,10 +8,14 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Peer {
+public class Peer implements RMIService {
 
     public static MulticastSocket socket;
     HashMap<Integer, Map<Integer, byte[]>> storage = new HashMap<>();
@@ -29,6 +33,21 @@ public class Peer {
     public static Thread mdrThread;
 
     public static void main(String[] args) {
+    	
+    	// Initiate RMI
+    	try {
+    		String name = "Peer";
+    		Peer peer = new Peer();
+    		RMIService stub = (RMIService) UnicastRemoteObject.exportObject(peer, 0);
+    		Registry registry = LocateRegistry.getRegistry();
+    		registry.rebind(name, stub);
+    		System.out.println("Peer bound");
+    	}
+    	catch(Exception e) {
+    		System.err.println("RMIService exception");
+    		e.printStackTrace();
+    	}
+    	
 
 //        if(args.length != 6){
 //            printUsage(args);
@@ -46,6 +65,8 @@ public class Peer {
         mdbThread = new Thread(mdbChannel);
         mdrThread = new Thread(mdrChannel);
 
+        System.out.println("Peer" + args[7]);
+        
         mcThread.start();
         mdbThread.start();
         mdrThread.start();
@@ -75,5 +96,25 @@ public class Peer {
     public static void printUsage(String[] args) {
         System.out.println("Wrong number of arguments");
         System.out.println("Usage: ./peer mcAddress mcPort mdbAddress mdbPort mdrAddress mdrPort");
+    }
+    
+    public boolean backup() {
+    	System.out.println("Backup");
+    	return true;
+    }
+    
+    public boolean restore() {
+    	System.out.println("Restore");
+    	return true;
+    }
+    
+    public boolean delete() {
+    	System.out.println("Delete");
+    	return true;
+    }
+    
+    public boolean reclaim() {
+    	System.out.println("Reclaim");
+    	return true;
     }
 }
