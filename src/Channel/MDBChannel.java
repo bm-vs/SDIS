@@ -1,7 +1,10 @@
 package Channel;
 
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.net.DatagramPacket;
 
+import Chunks.ChunkSave;
 import Header.Field;
 import Header.Type;
 import Server.PeerId;
@@ -21,14 +24,15 @@ public class MDBChannel extends Channel{
         }
     }
 
-    private void handlePUTCHUNK(String[] packetHeader, String body){
+    private void handlePUTCHUNK(String[] packetHeader, byte[] body){
         //create backup using info in header
-
+        String fileId = packetHeader[Field.fileId];
+        int chunkNo = Integer.parseInt(packetHeader[Field.chunkNo]);
+        ChunkSave store = new ChunkSave(fileId, chunkNo, body);
+        new Thread(store).run();
 
         //send response
-        String fileId = packetHeader[Field.fileId];
-        String chunkNo = packetHeader[Field.chunkNo];
-        answer(Type.stored, fileId, chunkNo);
+        answer(Type.stored, fileId, packetHeader[Field.chunkNo]);
     }
 
     private void answer(String type, String fileId, String chunkNo){

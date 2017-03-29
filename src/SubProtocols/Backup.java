@@ -9,37 +9,37 @@ import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.SocketTimeoutException;
 
-public class Backup extends SubProtocol {
+public class Backup extends SubProtocol implements Runnable {
 
     private final int MAX_SIZE = 64000;
     private final int SEND_REPEAT = 5;
-    private String filePath;
     private int replDegree;
+    File file;
+    String fileId;
     RandomAccessFile in;
     MulticastSocket socket;
     InetAddress address;
     int port;
     Peer peer;
-    Thread thread;
 
-    public Backup(PeerId peer, int fileId, String filePath, int replDegree, MulticastSocket socket, InetAddress address, int port, Thread thread){
-        super(peer, fileId);
-        this.filePath = filePath;
+    public Backup(PeerId peer, String filePath, int replDegree, MulticastSocket socket, InetAddress address, int port){
+        super(peer);
+        this.fileId = fileId;
         this.replDegree = replDegree;
         this.socket = socket;
         this.address = address;
         this.port = port;
-        this.thread = thread;
         try {
+            fileId = getFileId(filePath);
             in = new RandomAccessFile(filePath, "r");
-        } catch (FileNotFoundException err){
+        } catch (IOException err){
             System.err.println("File not found");
         }
 
 
     }
 
-    public void transfer(){
+    public void run(){
 
         int i = 0, repeats = 0;
         int numChunks = 0, timeout = 500; //in miliseconds
@@ -60,12 +60,12 @@ public class Backup extends SubProtocol {
             do{
                 timeout *= 2;
                 try{
-                    //peer.mcChannel.startStoredCount(thread, fileId, numChunks, replDegree);
+                    peer.mcChannel.startStoredCount(fileId, numChunks, replDegree);
                     socket.send(packet);
                     try {
                         Thread.sleep(timeout);
-                        socket.setSoTimeout(timeout);
                     } catch (InterruptedException err){
+
                     }
                 }catch (IOException err){
 
@@ -79,7 +79,7 @@ public class Backup extends SubProtocol {
 
     public String createHeader(int chunkNo){
         String common = super.getCommonHeader();
-        String header = "PUTCHUNK " + common + " " + chunkNo + " " + replDegree + " CRLFCRLF";
+        String header = "PUTCHUNK " + common + " " + chunkNo + " " + replDegree + " \r\n\r\n";
 
         return header;
     };

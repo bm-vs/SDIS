@@ -36,15 +36,15 @@ public class MCChannel extends Channel{
         }
     }
 
-    public void startStoredCount(Thread thread, int fileId, int chunkNo, int replDegree){
+    public void startStoredCount(String fileId, int chunkNo, int replDegree){
         ChunkId key = new ChunkId(fileId, chunkNo);
-        ChunkInfo value = new ChunkInfo(thread, replDegree);
+        ChunkInfo value = new ChunkInfo(replDegree);
         if(replies.get(key) == null){
             replies.put(key, value);
         }
     }
 
-    public int getStoredMessages(int fileId, int chunkNo){
+    public int getStoredMessages(String fileId, int chunkNo){
         ChunkId key = new ChunkId(fileId, chunkNo);
         ChunkInfo c = replies.get(key);
         replies.remove(key);
@@ -52,9 +52,9 @@ public class MCChannel extends Channel{
     }
 
     public void storedMessage(String[] args){
-        int fileId = Integer.parseInt(args[3]);
+        String fileId = args[3];
         int chunkNo = Integer.parseInt(args[4]);
-        int senderId = Integer.parseInt(args[2]);
+        String senderId = args[2];
 
         //if (replies.get(new ChunkId(fileId, chunkNo))== null){
 

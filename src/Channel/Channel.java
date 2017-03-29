@@ -6,13 +6,14 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.util.Arrays;
 
 public class Channel implements Runnable {
     public int port;
     public InetAddress address;
     MulticastSocket socket;
     String[] packetHeader;
-    String packetBody;
+    byte[] packetBody;
     Peer peer;
 
     public Channel(int port, String address){
@@ -47,16 +48,17 @@ public class Channel implements Runnable {
     }
 
     public void handle(DatagramPacket packet){
-        String pac = new String(packet.getData());
-        String[] packetData = pac.split("CRLFCRLF", 2);
+        byte[] raw = packet.getData();
+        String pac = new String(raw);
+        String[] packetData = pac.split("\r\n\r\n", 2);
         packetHeader = packetData[0].split("\\s+");
-        packetBody = packetData[1];
+        packetBody = Arrays.copyOfRange(raw, packetData[0].length()+4, raw.length);
     }
 
-    public void startStoredCount(Thread thread, int fileId, int chunkNo, int replDegree){
+    public void startStoredCount(String fileId, int chunkNo, int replDegree){
     }
 
-    public int getStoredMessages(int fileId, int chunkNo){
+    public int getStoredMessages(String fileId, int chunkNo){
         return 5;
     }
 }

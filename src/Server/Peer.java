@@ -2,6 +2,7 @@ package Server;
 
 import Channel.*;
 
+import Chunks.ChunkId;
 import Header.Type;
 
 import java.io.IOException;
@@ -18,7 +19,11 @@ import java.util.Map;
 public class Peer implements RMIService {
 
     public static MulticastSocket socket;
-    HashMap<Integer, Map<Integer, byte[]>> storage = new HashMap<>();
+
+    //TODO
+    //saves fileId and thread of the subprotocolo process
+    //when creating thread puts it into this hashmap
+    HashMap<String, Thread> storage = new HashMap<>();
 
     public static String remObj;
 
@@ -38,6 +43,7 @@ public class Peer implements RMIService {
     	try {
     		String name = "Peer";
     		Peer peer = new Peer();
+//            System.setProperty("java.rmi.server.hostname","224.0.0.3");
     		RMIService stub = (RMIService) UnicastRemoteObject.exportObject(peer, 0);
     		Registry registry = LocateRegistry.getRegistry();
     		registry.rebind(name, stub);
