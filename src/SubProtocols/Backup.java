@@ -19,7 +19,6 @@ public class Backup extends SubProtocol implements Runnable {
     MulticastSocket socket;
     InetAddress address;
     int port;
-    TestClient peer;
 
     public Backup(PeerId peerId, String filePath, int replDegree, MulticastSocket socket, InetAddress address, int port){
         super(peerId, filePath);
@@ -38,7 +37,7 @@ public class Backup extends SubProtocol implements Runnable {
 
     public void run(){
 
-        int i = 0, repeats = 0;
+        int i = 0, repeats = 0, confirmations;
         int numChunks = 0, timeout = 500; //in miliseconds
         byte[] buf, body = new byte[MAX_SIZE];
         do {
@@ -52,12 +51,12 @@ public class Backup extends SubProtocol implements Runnable {
 
             buf = createPacket(body, numChunks);
             DatagramPacket packet = new DatagramPacket(buf, buf.length, address, port);
-            int confirmations;
 
             do{
+                confirmations = 0;
                 timeout *= 2;
                 try{
-                    peer.mcChannel.startStoredCount(fileId, numChunks, replDegree);
+                    Peer.mcChannel.startStoredCount(fileId, numChunks, replDegree);
                     socket.send(packet);
                     try {
                         Thread.sleep(timeout);
@@ -67,11 +66,15 @@ public class Backup extends SubProtocol implements Runnable {
                 }catch (IOException err){
 
                 }
-                confirmations = peer.mcChannel.getStoredMessages(fileId, numChunks);
+                confirmations = Peer.mcChannel.getStoredMessages(fileId, numChunks);
 
             } while(confirmations < replDegree && repeats < SEND_REPEAT);
+            if(confirmations >= replDegree){
+                timeout = 500;
+            }
+        } while(i == 64000);
 
-        } while(i == 64000 || repeats < SEND_REPEAT);
+        System.out.println("Backup completed");
     }
 
     public String createHeader(int chunkNo){

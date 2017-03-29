@@ -3,10 +3,12 @@ package Channel;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.net.DatagramPacket;
+import java.util.Random;
 
 import Chunks.ChunkSave;
 import Header.Field;
 import Header.Type;
+import Server.Peer;
 import Server.PeerId;
 
 public class MDBChannel extends Channel{
@@ -17,7 +19,7 @@ public class MDBChannel extends Channel{
 
     public void handle(DatagramPacket packet){
         super.handle(packet);
-        if(Integer.parseInt(packetHeader[Field.senderId]) == 5)
+        if(Integer.parseInt(packetHeader[Field.senderId]) == Peer.peerId.id)
             return;
         String type = packetHeader[0];
         switch (type){
@@ -38,7 +40,7 @@ public class MDBChannel extends Channel{
     }
 
     private void answer(String type, String fileId, String chunkNo){
-        PeerId peerId= peer.peer;
+        PeerId peerId= peer.peerId;
         String message = Type.stored + " " +
                 peerId.version + " " +
                 peerId.id + " " +
@@ -46,6 +48,13 @@ public class MDBChannel extends Channel{
                 chunkNo + " " +
                 Field.cr + Field.lf +
                 Field.cr + Field.lf;
-        peer.sendToMC(message, peer.mcChannel);
+        Random rnd = new Random();
+        int time = rnd.nextInt(400);
+        try {
+            Thread.sleep(time);
+        }catch(InterruptedException err){
+            System.err.println(err);
+        }
+        peer.sendToChannel(message, peer.mcChannel);
     }
 }

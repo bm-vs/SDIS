@@ -32,64 +32,61 @@ public class Peer implements RMIService {
     public static Channel mdbChannel;
     public static Channel mdrChannel;
 
-    public static PeerId peer;
+    public static PeerId peerId;
 
     public static Thread mcThread;
     public static Thread mdbThread;
     public static Thread mdrThread;
 
     public static void main(String[] args) {
-    	
-    	// Initiate RMI
-    	try {
-    		String name = "Peer";
-    		Peer peer = new Peer();
-//            System.setProperty("java.rmi.server.hostname","224.0.0.3");
-    		RMIService stub = (RMIService) UnicastRemoteObject.exportObject(peer, 0);
-    		Registry registry = LocateRegistry.getRegistry();
-    		registry.rebind(name, stub);
-    		System.out.println("Peer bound");
-    	}
-    	catch(Exception e) {
-    		System.err.println("RMIService exception");
-    		e.printStackTrace();
-    	}
-    	
 
-//        if(args.length != 6){
-//            printUsage(args);
-//            return;
-//        } else{
-        init(args);
-//        }
+        if(args.length != 9){
+            printUsage(args);
+            return;
+        } else{
+            init(args);
+        }
         try {
             socket = new MulticastSocket();
         }catch(IOException err){
             System.err.println(err);
-
         }
+
+        // Initiate RMI
+        try {
+            Peer peer = new Peer();
+            RMIService stub = (RMIService) UnicastRemoteObject.exportObject(peer, 0);
+            Registry registry = LocateRegistry.getRegistry();
+            registry.rebind(remObj, stub);
+            System.out.println("Peer bound to remote object name: " + remObj);
+        }
+        catch(Exception e) {
+            System.err.println("RMIService exception");
+            e.printStackTrace();
+        }
+
         mcThread = new Thread(mcChannel);
         mdbThread = new Thread(mdbChannel);
         mdrThread = new Thread(mdrChannel);
 
-        System.out.println("Peer" + args[7]);
+        System.out.println("Initialized Peer " + args[1]);
         
         mcThread.start();
         mdbThread.start();
         mdrThread.start();
-
     }
 
 
     public static void init(String[] args){
-        mcChannel = new MCChannel(Integer.parseInt(args[1]), args[0]);
-        mdbChannel = new MDBChannel(Integer.parseInt(args[3]), args[2]);
-        mdrChannel = new MDRChannel(Integer.parseInt(args[5]), args[4]);
+        mcChannel = new MCChannel(Integer.parseInt(args[4]), args[3]);
+        mdbChannel = new MDBChannel(Integer.parseInt(args[6]), args[5]);
+        mdrChannel = new MDRChannel(Integer.parseInt(args[8]), args[7]);
 
-        peer = new PeerId(Integer.parseInt(args[7]), args[6]);
+        peerId = new PeerId(Integer.parseInt(args[1]), args[0]);
+        remObj = args[2];
     }
 
-    public static void sendToMC(String message, Channel channel){
+    public static void sendToChannel(String message, Channel channel){
         byte[]buf = message.getBytes();
 
         DatagramPacket packet = new DatagramPacket(buf, buf.length, channel.address, channel.port);
@@ -102,16 +99,16 @@ public class Peer implements RMIService {
 
     public static void wakeThread(String key){
         Thread t = protocols.get(key);
-        t.interrupt();
+//        t.interrupt();
     }
 
     public static void printUsage(String[] args) {
         System.out.println("Wrong number of arguments");
-        System.out.println("Usage: ./peer mcAddress mcPort mdbAddress mdbPort mdrAddress mdrPort");
+        System.out.println("Usage: java Server.Peer version id RmiName mcAddress mcPort mdbAddress mdbPort mdrAddress mdrPort");
     }
     
     public boolean backup(String file, int replDegree) {
-        Backup backup = new Backup(peer, file, replDegree, socket, mdbChannel.address, mdbChannel.port);
+        Backup backup = new Backup(peerId, file, replDegree, socket, mdbChannel.address, mdbChannel.port);
         Thread t = new Thread(backup);
         protocols.put(backup.getFileId(), t);
         t.start();

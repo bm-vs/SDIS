@@ -11,10 +11,10 @@ import java.util.Scanner;
 
 public class Client {
 
-    static int port;
-    static String operation;
-    static String op1;
-    static int op2;
+    private static String access;
+    private static String operation;
+    private static String op1;
+    private static int op2;
 
     public static void main(String[] args) throws UnknownHostException {
         if (!checkArguments(args)) {
@@ -28,9 +28,8 @@ public class Client {
         
         // Start RMI
         try {
-            String name = "Peer";
             Registry registry = LocateRegistry.getRegistry("localhost");
-        	RMIService peer = (RMIService) registry.lookup(name);
+        	RMIService peer = (RMIService) registry.lookup("Peer");
 
         	boolean status = false;
         	
@@ -61,7 +60,7 @@ public class Client {
     private static boolean checkArguments(String[] args) {
         switch(args.length) {
             case 4:
-                port = Integer.parseInt(args[0]);
+                access = args[0];
                 operation = args[1];
                 if (operation.equals("BACKUP")) {
                     op1 = args[2];
@@ -70,7 +69,7 @@ public class Client {
                 }
                 return true;
             case 3:
-                port = Integer.parseInt(args[0]);
+                access = args[0];
                 operation = args[1];
                 if (operation.equals("RESTORE") || operation.equals("DELETE") || operation.equals("RECLAIM")) {
                     op1 = args[2];
@@ -78,7 +77,7 @@ public class Client {
                 }
                 return false;
             case 2:
-                port = Integer.parseInt(args[0]);
+                access = args[0];
                 operation = args[1];
                 if (operation.equals("STATE")) {
                     return true;
