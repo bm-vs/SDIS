@@ -17,6 +17,8 @@ public class MDBChannel extends Channel{
 
     public void handle(DatagramPacket packet){
         super.handle(packet);
+        if(Integer.parseInt(packetHeader[Field.senderId]) == 5)
+            return;
         String type = packetHeader[0];
         switch (type){
             case Type.putchunk:

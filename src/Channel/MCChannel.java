@@ -55,10 +55,16 @@ public class MCChannel extends Channel{
         String fileId = args[3];
         int chunkNo = Integer.parseInt(args[4]);
         String senderId = args[2];
+        ChunkId id = new ChunkId(fileId, chunkNo);
+        ChunkInfo info;
+        if ((info = replies.get(id)) != null){
+            info.confirmations++;
+            replies.put(id, info);
 
-        //if (replies.get(new ChunkId(fileId, chunkNo))== null){
-
-        //}
+            if(info.confirmations >= info.replDegree){
+                peer.wakeThread(fileId + " " + chunkNo);
+            }
+        }
 
     }
 }

@@ -1,5 +1,6 @@
 package SubProtocols;
 
+import Client.TestClient;
 import Server.Peer;
 import Server.PeerId;
 
@@ -14,23 +15,19 @@ public class Backup extends SubProtocol implements Runnable {
     private final int MAX_SIZE = 64000;
     private final int SEND_REPEAT = 5;
     private int replDegree;
-    File file;
-    String fileId;
     RandomAccessFile in;
     MulticastSocket socket;
     InetAddress address;
     int port;
-    Peer peer;
+    TestClient peer;
 
-    public Backup(PeerId peer, String filePath, int replDegree, MulticastSocket socket, InetAddress address, int port){
-        super(peer);
-        this.fileId = fileId;
+    public Backup(PeerId peerId, String filePath, int replDegree, MulticastSocket socket, InetAddress address, int port){
+        super(peerId, filePath);
         this.replDegree = replDegree;
         this.socket = socket;
         this.address = address;
         this.port = port;
         try {
-            fileId = getFileId(filePath);
             in = new RandomAccessFile(filePath, "r");
         } catch (IOException err){
             System.err.println("File not found");

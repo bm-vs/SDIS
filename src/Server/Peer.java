@@ -4,6 +4,7 @@ import Channel.*;
 
 import Chunks.ChunkId;
 import Header.Type;
+import SubProtocols.Backup;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -21,9 +22,9 @@ public class Peer implements RMIService {
     public static MulticastSocket socket;
 
     //TODO
-    //saves fileId and thread of the subprotocolo process
+    //saves fileId and thread of the subprotocol process
     //when creating thread puts it into this hashmap
-    HashMap<String, Thread> storage = new HashMap<>();
+    static HashMap<String, Thread> protocols = new HashMap<>();
 
     public static String remObj;
 
@@ -99,13 +100,21 @@ public class Peer implements RMIService {
         }
     }
 
+    public static void wakeThread(String key){
+        Thread t = protocols.get(key);
+        t.interrupt();
+    }
+
     public static void printUsage(String[] args) {
         System.out.println("Wrong number of arguments");
         System.out.println("Usage: ./peer mcAddress mcPort mdbAddress mdbPort mdrAddress mdrPort");
     }
     
-    public boolean backup() {
-    	System.out.println("Backup");
+    public boolean backup(String file, int replDegree) {
+        Backup backup = new Backup(peer, file, replDegree, socket, mdbChannel.address, mdbChannel.port);
+        Thread t = new Thread(backup);
+        protocols.put(backup.getFileId(), t);
+        t.start();
     	return true;
     }
     

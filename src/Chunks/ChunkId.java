@@ -20,7 +20,7 @@ public class ChunkId {
         if(getClass() != obj.getClass())
             return false;
         ChunkId c = (ChunkId) obj;
-        return this.fileId == c.fileId && this.chunkNo == c.chunkNo;
+        return this.fileId.equals(c.fileId) && this.chunkNo == c.chunkNo;
     }
 
     @Override

@@ -16,8 +16,6 @@ public class Client {
     static String op1;
     static int op2;
 
-    private Scanner scanner;
-
     public static void main(String[] args) throws UnknownHostException {
         if (!checkArguments(args)) {
             System.out.println("Error: Invalid action");
@@ -38,7 +36,7 @@ public class Client {
         	
         	switch (operation) {
 	            case "BACKUP":
-	            	status = peer.backup();
+	            	status = peer.backup(op1, op2);
 	                break;
 	            case "RESTORE":
 	            	status = peer.restore();

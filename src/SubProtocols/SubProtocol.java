@@ -10,8 +10,10 @@ public class SubProtocol {
     protected PeerId peer;
     protected String fileId;
 
-    public SubProtocol(PeerId peer){
+    public SubProtocol(PeerId peer, String filePath){
         this.peer = peer;
+        fileId = getFileId(filePath);
+
     }
 
     public static String getFileId(String path) {
@@ -33,6 +35,10 @@ public class SubProtocol {
         } catch(Exception ex){
             throw new RuntimeException(ex);
         }
+    }
+
+    public String getFileId(){
+        return fileId;
     }
 
     public String getCommonHeader(){

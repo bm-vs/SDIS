@@ -29,7 +29,7 @@ import java.util.Map;
 public class TestClient implements RMIService {
 
     public static MulticastSocket socket;
-    HashMap<Integer, Map<Integer, byte[]>> storage = new HashMap<>();
+    public static HashMap<String, Thread> protocols = new HashMap<>();
 
     public static String remObj;
 
@@ -83,10 +83,14 @@ public class TestClient implements RMIService {
         mdbThread.start();
         mdrThread.start();
 
+
+
+        //place this part in rmi
         String file = "a.jpg";
 
         Backup backup = new Backup(peer, file, 1, socket, mdbChannel.address, mdbChannel.port);
         Thread t = new Thread(backup);
+        protocols.put(backup.getFileId(), t);
         t.start();
     }
 
@@ -110,12 +114,17 @@ public class TestClient implements RMIService {
         }
     }
 
+    public static void wakeThread(String key){
+        Thread t = protocols.get(key);
+        t.interrupt();
+    }
+
     public static void printUsage(String[] args) {
         System.out.println("Wrong number of arguments");
         System.out.println("Usage: ./peer mcAddress mcPort mdbAddress mdbPort mdrAddress mdrPort");
     }
 
-    public boolean backup() {
+    public boolean backup(String file, int replDegree) {
         System.out.println("Backup");
         return true;
     }
