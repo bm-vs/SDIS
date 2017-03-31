@@ -24,7 +24,11 @@ import java.util.Scanner;
 
 public class Peer implements RMIService {
 
+	private static final String INDEXFILE = "index.txt";
+
     public static MulticastSocket socket;
+
+    static HashMap<ChunkId, ChunkInfo> replies;
 
     //TODO
     //saves fileId and thread of the subprotocol process
@@ -69,6 +73,8 @@ public class Peer implements RMIService {
             System.err.println("RMIService exception");
             e.printStackTrace();
         }
+		
+        replies = new HashMap<>();
 
         mcThread = new Thread(mcChannel);
         mdbThread = new Thread(mdbChannel);
@@ -107,10 +113,46 @@ public class Peer implements RMIService {
 //        t.interrupt();
     }
 
+		public static HashMap<ChunkId, ChunkInfo> getReplies() {
+		return replies;
+	}
+
+	public static ChunkInfo getChunkInfo(ChunkId id) {
+		return replies.get(id);
+	}
+
+	public static void addReply(ChunkId id, ChunkInfo info) {
+		replies.put(id, info);
+		saveRepliesToFile();
+	}
+
+	public static void deleteReply(ChunkId id) {
+		replies.remove(id);
+		saveRepliesToFile();
+	}
+	
+	public static void saveRepliesToFile() {
+		BufferedWriter out = null;
+		try {
+			FileWriter fstream = new FileWriter(INDEXFILE);
+			out = new BufferedWriter(fstream);
+			
+			for (ChunkId key: replies.keySet()) {
+				out.write(key.getFileId() + " " + ((Integer) key.getChunkNo()).toString() + "\n");
+				out.write(replies.get(key).replDegree + " " + replies.get(key).confirmations + "\n");
+			}
+
+			out.close();
+		}
+		catch (IOException e) {
+			System.err.println("Error: " + e.getMessage());
+		}
+	}
+
     private static void loadFile(){
         BufferedReader buffer;
         try {
-             buffer = new BufferedReader(new FileReader("index.txt"));
+             buffer = new BufferedReader(new FileReader(INDEXFILE));
         }catch(FileNotFoundException err){
             return;
         }
