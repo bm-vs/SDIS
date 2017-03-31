@@ -53,7 +53,6 @@ public class Backup extends SubProtocol implements Runnable {
             DatagramPacket packet = new DatagramPacket(buf, buf.length, address, port);
 
             do{
-                confirmations = 0;
                 timeout *= 2;
                 try{
                     Peer.mcChannel.startStoredCount(fileId, numChunks, replDegree);

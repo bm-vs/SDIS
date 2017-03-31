@@ -3,9 +3,13 @@ package Server;
 import Channel.*;
 
 import Chunks.ChunkId;
+import Chunks.ChunkInfo;
 import Header.Type;
 import SubProtocols.Backup;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -16,6 +20,7 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Scanner;
 
 public class Peer implements RMIService {
 
@@ -101,6 +106,33 @@ public class Peer implements RMIService {
         Thread t = protocols.get(key);
 //        t.interrupt();
     }
+
+    private static void loadFile(){
+        BufferedReader buffer;
+        try {
+             buffer = new BufferedReader(new FileReader("index.txt"));
+        }catch(FileNotFoundException err){
+            return;
+        }
+        String info, fileName;
+        String[] splitInfo;
+        ChunkInfo chunkInfo;
+        do{
+            try {
+                fileName = buffer.readLine();
+                if (fileName == null) return;
+
+                info = buffer.readLine();
+                if(info == null) return;
+                splitInfo = info.split(" ");
+                chunkInfo = new ChunkInfo(Integer.parseInt(splitInfo[0]), Integer.parseInt(splitInfo[1]));
+
+            }catch(IOException err){
+            }
+        }while(true);
+    }
+
+
 
     public static void printUsage(String[] args) {
         System.out.println("Wrong number of arguments");

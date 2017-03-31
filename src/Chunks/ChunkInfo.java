@@ -10,4 +10,9 @@ public class ChunkInfo {
         this.replDegree = replDegree;
         confirmations = 0;
     }
+
+    public ChunkInfo(int replDegree, int confirmations){
+        this.replDegree = replDegree;
+        this.confirmations = confirmations;
+    }
 }
