@@ -71,6 +71,9 @@ public class Backup extends SubProtocol implements Runnable {
             } while(confirmations < replDegree && repeats < SEND_REPEAT);
             if(confirmations >= replDegree){
                 timeout = 500;
+                System.out.println("Stored chunk with acceptable replication degree");
+            } else{
+                System.out.println("No answer");
             }
         } while(i == 64000);
 

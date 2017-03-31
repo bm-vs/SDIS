@@ -37,9 +37,7 @@ public class Channel implements Runnable {
         DatagramPacket packet = new DatagramPacket(buf, buf.length);
         while(true){
             try {
-                System.out.println("Im here");
                 socket.receive(packet);
-
                 handle(packet);
             } catch(IOException err){
                 System.err.println(err);
