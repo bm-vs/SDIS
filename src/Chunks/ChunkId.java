@@ -11,6 +11,14 @@ public class ChunkId {
         this.chunkNo = chunkNo;
     }
 
+	public String getFileId() {
+		return fileId;
+	}
+
+	public int getChunkNo() {
+		return chunkNo;
+	}
+
     @Override
     public boolean equals(Object obj){
         if(this == obj)
