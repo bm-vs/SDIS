@@ -18,6 +18,7 @@ public class Backup extends SubProtocol implements Runnable {
     RandomAccessFile in;
     MulticastSocket socket;
     InetAddress address;
+    String filePath;
     int port;
 
     public Backup(PeerId peerId, String filePath, int replDegree, MulticastSocket socket, InetAddress address, int port){
@@ -26,6 +27,7 @@ public class Backup extends SubProtocol implements Runnable {
         this.socket = socket;
         this.address = address;
         this.port = port;
+        this.filePath = filePath;
         try {
             in = new RandomAccessFile(filePath, "r");
         } catch (IOException err){
@@ -49,8 +51,9 @@ public class Backup extends SubProtocol implements Runnable {
 
             buf = createPacket(body, numChunks);
             DatagramPacket packet = new DatagramPacket(buf, buf.length, address, port);
-
+            repeats = 0;
             do{
+                repeats++;
                 timeout *= 2;
                 try{
                     Peer.mcChannel.startStoredCount(fileId, numChunks, replDegree);
@@ -58,10 +61,10 @@ public class Backup extends SubProtocol implements Runnable {
                     try {
                         Thread.sleep(timeout);
                     } catch (InterruptedException err){
-
+                        System.err.println(err);
                     }
                 }catch (IOException err){
-
+                    System.err.println(err);
                 }
                 confirmations = Peer.mcChannel.getStoredMessages(fileId, numChunks);
 
@@ -75,6 +78,8 @@ public class Backup extends SubProtocol implements Runnable {
         } while(i == 64000);
 
         System.out.println("Backup completed");
+
+        Peer.savePath(filePath, fileId);
     }
 
     public String createHeader(int chunkNo){

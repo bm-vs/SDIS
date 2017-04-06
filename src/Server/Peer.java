@@ -37,6 +37,8 @@ public class Peer implements RMIService {
     //when creating thread puts it into this hashmap
     static HashMap<String, Thread> protocols = new HashMap<>();
 
+    static HashMap<String, String> restorations = new HashMap<>();
+
     public static String remObj;
 
     public static Channel mcChannel;
@@ -174,6 +176,14 @@ public class Peer implements RMIService {
             }catch(IOException err){
             }
         }while(true);
+    }
+
+    public static void savePath(String filePath, String fileId){
+        restorations.put(filePath, fileId);
+    }
+
+    public static HashMap<String, String> getRestorations(){
+        return restorations;
     }
 
 
