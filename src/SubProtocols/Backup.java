@@ -31,8 +31,6 @@ public class Backup extends SubProtocol implements Runnable {
         } catch (IOException err){
             System.err.println("File not found");
         }
-
-
     }
 
     public void run(){

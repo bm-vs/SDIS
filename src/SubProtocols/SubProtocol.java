@@ -3,20 +3,27 @@ package SubProtocols;
 import Server.PeerId;
 
 import java.io.File;
+import java.io.RandomAccessFile;
+import java.net.InetAddress;
+import java.net.MulticastSocket;
 import java.security.MessageDigest;
 
 public class SubProtocol {
 
     protected PeerId peer;
     protected String fileId;
+    protected RandomAccessFile in;
+    protected MulticastSocket socket;
+    protected InetAddress address;
+    protected int port;
 
-    public SubProtocol(PeerId peer, String filePath){
+    SubProtocol(PeerId peer, String filePath){
         this.peer = peer;
         fileId = getFileId(filePath);
 
     }
 
-    public static String getFileId(String path) {
+    protected static String getFileId(String path) {
         File file = new File(path);
         String base = path + file.lastModified() + file.length();
 
@@ -41,7 +48,7 @@ public class SubProtocol {
         return fileId;
     }
 
-    public String getCommonHeader(){
+    protected String getCommonHeader(){
         return peer.version + " " + peer.id + " " + fileId;
     }
 }
