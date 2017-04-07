@@ -4,6 +4,7 @@ package Channel;
 import Chunks.ChunkDelete;
 import Chunks.ChunkId;
 import Chunks.ChunkInfo;
+import Chunks.ChunkReclaim;
 import Chunks.ChunkSend;
 import Header.Field;
 import Server.Peer;
@@ -34,6 +35,7 @@ public class MCChannel extends Channel{
                 new Thread(new ChunkDelete(packetHeader[Field.fileId]));
                 break;
             case "REMOVED":
+				removedChunk(packetHeader);
                 break;
         }
     }
@@ -70,5 +72,21 @@ public class MCChannel extends Channel{
 
         }
 
+    }
+	
+    public void removedChunk(String[] args) {
+    	String fileId = args[3];
+    	int chunkNo = Integer.parseInt(args[4]);
+    	
+    	ChunkId id = new ChunkId(fileId, chunkNo);
+    	ChunkInfo info;
+    	if ((info = Peer.getChunkInfo(id)) != null) {
+    		info.confirmations++;
+    		Peer.addReply(id, info);
+    		
+        	if (info.confirmations < info.replDegree) {
+        		new Thread(new ChunkReclaim(id.getFileId(), id.getChunkNo())).run();
+        	}   		
+    	}
     }
 }

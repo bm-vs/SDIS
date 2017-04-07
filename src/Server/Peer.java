@@ -130,7 +130,7 @@ public class Peer implements RMIService {
 		replies.put(id, info);
 		saveRepliesToFile();
 	}
-
+	
 	public static void deleteReply(ChunkId id) {
 		replies.remove(id);
 		saveRepliesToFile();
@@ -207,7 +207,7 @@ public class Peer implements RMIService {
     public boolean restore(String file) {
         Restore restore = new Restore(file);
         Thread t = new Thread(restore);
-        protocols.put("BACKUP " + restore.getFileId(), t);
+        protocols.put("RESTORE " + restore.getFileId(), t);
         return true;
     }
     
@@ -219,7 +219,7 @@ public class Peer implements RMIService {
     public boolean reclaim(int space) {
     	Reclaim reclaim = new Reclaim(space);
     	Thread t = new Thread(reclaim);
-    	protocols.put("BACKUP " + reclaim.getFileId(), t);
+    	protocols.put("RECLAIM " + reclaim.getFileId(), t);
         t.start();
     	return true;
     }

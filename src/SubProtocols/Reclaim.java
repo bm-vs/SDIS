@@ -7,7 +7,6 @@ import java.util.Map.Entry;
 import Chunks.ChunkId;
 import Chunks.ChunkInfo;
 import Server.Peer;
-import Server.PeerId;
 
 public class Reclaim extends SubProtocol implements Runnable {
 	private String chunk_location = "storage";
@@ -27,7 +26,7 @@ public class Reclaim extends SubProtocol implements Runnable {
 			Entry<ChunkId, ChunkInfo> chunk = it.next();
 			
 			if (remove_all || chunk.getValue().replDegree > chunk.getValue().confirmations) {
-				File chunk_file = new File(chunk_location + "/" + chunk.getKey().getFileId() + " " + chunk.getKey().getChunkNo());
+				File chunk_file = new File(chunk_location + "/" + chunk.getKey().getFileId() + "/" + chunk.getKey().getChunkNo());
 
 				// get file size & add to space_removed
 				space_removed += chunk_file.length();
