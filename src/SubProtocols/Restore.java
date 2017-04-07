@@ -1,10 +1,10 @@
 package SubProtocols;
 
+import File.FileInfo;
+import File.File;
 import Server.Peer;
 import Server.PeerId;
 
-import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 
@@ -21,10 +21,29 @@ public class Restore extends SubProtocol implements Runnable{
     }
 
     public void run(){
-        String fileId;
-        if((fileId = Peer.getRestorations().get(filePath)) == null){
+        FileInfo fileInfo;
+        if((fileInfo = Peer.getRestorations().get(filePath)) == null){
             return;
         }
-        
+
+        for (int i = 0; i < fileInfo.totalChunks; i++) {
+            //send to mcchannel the getchunk request
+            String header = createHeader(i);
+
+            Peer.sendToChannel(header, Peer.mcChannel);
+            //append to file named in filepath
+            try{
+                Thread.sleep(1000);
+            }catch(InterruptedException err){
+                byte[] body = Peer.mdrChannel.getChunk(fileId, i);
+                new Thread(new File(filePath, body)).run();
+            }
+        }
+    }
+
+    public String createHeader(int chunkNo){
+        String common = super.getCommonHeader();
+        String header = "GETCHUNK " + common + " " + chunkNo + " " + "\r\n\r\n";
+        return header;
     }
 }

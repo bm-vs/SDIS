@@ -40,7 +40,7 @@ public class MDBChannel extends Channel{
     }
 
     private void answer(String type, String fileId, String chunkNo){
-        PeerId peerId= peer.peerId;
+        PeerId peerId= Peer.peerId;
         String message = Type.stored + " " +
                 peerId.version + " " +
                 peerId.id + " " +
@@ -55,6 +55,6 @@ public class MDBChannel extends Channel{
         }catch(InterruptedException err){
             System.err.println(err);
         }
-        peer.sendToChannel(message, peer.mcChannel);
+        Peer.sendToChannel(message, Peer.mcChannel);
     }
 }

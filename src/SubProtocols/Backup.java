@@ -79,7 +79,7 @@ public class Backup extends SubProtocol implements Runnable {
 
         System.out.println("Backup completed");
 
-        Peer.savePath(filePath, fileId);
+        Peer.savePath(filePath, fileId, numChunks);
     }
 
     public String createHeader(int chunkNo){

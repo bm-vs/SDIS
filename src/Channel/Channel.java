@@ -14,7 +14,6 @@ public class Channel implements Runnable {
     MulticastSocket socket;
     String[] packetHeader;
     byte[] packetBody;
-    Peer peer;
 
     public Channel(int port, String address){
         try {
@@ -58,5 +57,9 @@ public class Channel implements Runnable {
 
     public int getStoredMessages(String fileId, int chunkNo){
         return 5;
+    }
+
+    public byte[] getChunk(String fileId, int chunkNo){
+        return new byte[1];
     }
 }

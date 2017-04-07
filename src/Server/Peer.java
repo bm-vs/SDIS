@@ -4,7 +4,7 @@ import Channel.*;
 
 import Chunks.ChunkId;
 import Chunks.ChunkInfo;
-import Header.Type;
+import File.FileInfo;
 import SubProtocols.Backup;
 
 import java.io.BufferedReader;
@@ -14,15 +14,11 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.net.InetAddress;
 import java.net.MulticastSocket;
-import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
 
 public class Peer implements RMIService {
 
@@ -35,9 +31,9 @@ public class Peer implements RMIService {
     //TODO
     //saves fileId and thread of the subprotocol process
     //when creating thread puts it into this hashmap
-    static HashMap<String, Thread> protocols = new HashMap<>();
+    private static HashMap<String, Thread> protocols = new HashMap<>();
 
-    static HashMap<String, String> restorations = new HashMap<>();
+    static HashMap<String, FileInfo> restorations = new HashMap<>();
 
     public static String remObj;
 
@@ -54,7 +50,7 @@ public class Peer implements RMIService {
     public static void main(String[] args) {
 
         if(args.length != 9){
-            printUsage(args);
+            printUsage();
             return;
         } else{
             init(args);
@@ -92,7 +88,7 @@ public class Peer implements RMIService {
     }
 
 
-    public static void init(String[] args){
+    private static void init(String[] args){
         mcChannel = new MCChannel(Integer.parseInt(args[4]), args[3]);
         mdbChannel = new MDBChannel(Integer.parseInt(args[6]), args[5]);
         mdrChannel = new MDRChannel(Integer.parseInt(args[8]), args[7]);
@@ -114,10 +110,16 @@ public class Peer implements RMIService {
 
     public static void wakeThread(String key){
         Thread t = protocols.get(key);
-//        t.interrupt();
+        t.interrupt();
     }
 
-		public static HashMap<ChunkId, ChunkInfo> getReplies() {
+    public static boolean threadExists(String key){
+        if(protocols.get(key) != null){
+            return true;
+        } else return false;
+    }
+
+    public static HashMap<ChunkId, ChunkInfo> getReplies() {
 		return replies;
 	}
 
@@ -178,17 +180,17 @@ public class Peer implements RMIService {
         }while(true);
     }
 
-    public static void savePath(String filePath, String fileId){
-        restorations.put(filePath, fileId);
+    public static void savePath(String filePath, String fileId, int totalChunks){
+        restorations.put(filePath, new FileInfo(fileId, totalChunks));
     }
 
-    public static HashMap<String, String> getRestorations(){
+    public static HashMap<String, FileInfo> getRestorations(){
         return restorations;
     }
 
 
 
-    public static void printUsage(String[] args) {
+    private static void printUsage() {
         System.out.println("Wrong number of arguments");
         System.out.println("Usage: java Server.Peer version id RmiName mcAddress mcPort mdbAddress mdbPort mdrAddress mdrPort");
     }
@@ -196,7 +198,7 @@ public class Peer implements RMIService {
     public boolean backup(String file, int replDegree) {
         Backup backup = new Backup(peerId, file, replDegree, socket, mdbChannel.address, mdbChannel.port);
         Thread t = new Thread(backup);
-        protocols.put(backup.getFileId(), t);
+        protocols.put("BACKUP " + backup.getFileId(), t);
         t.start();
     	return true;
     }
