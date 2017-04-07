@@ -1,8 +1,6 @@
 package SubProtocols;
 
 import java.io.File;
-import java.net.InetAddress;
-import java.net.MulticastSocket;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
@@ -15,7 +13,7 @@ public class Reclaim extends SubProtocol implements Runnable {
 	private String chunk_location = "storage";
 	private int space;
 	
-	public Reclaim(PeerId peerId, int space, MulticastSocket socket, InetAddress address, int port){
+	public Reclaim(PeerId peerId, int space){
 		super(peerId, "");
 		this.space = space;
 	}

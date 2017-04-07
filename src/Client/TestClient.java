@@ -139,7 +139,7 @@ public class TestClient implements RMIService {
         return true;
     }
 
-    public boolean reclaim() {
+    public boolean reclaim(int space) {
         System.out.println("Reclaim");
         return true;
     }
