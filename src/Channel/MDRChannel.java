@@ -12,6 +12,8 @@ import java.util.HashMap;
 
 public class MDRChannel extends Channel {
 
+    public static HashMap<String, byte[]> chunks = new HashMap<>();
+
     public MDRChannel(int port, String address){
         super(port, address);
     }
@@ -34,18 +36,18 @@ public class MDRChannel extends Channel {
         String key = packetHeader[Field.fileId] + packetHeader[Field.chunkNo];
         if(Peer.threadExists(thread)) {
             //put byte array to hashmap and wake up restore thread
-            Peer.chunks.put(key, body);
+            chunks.put(key, body);
             Peer.wakeThread(thread);
         } else{
-            Peer.chunks.put(key, new byte[0]);
+            chunks.put(key, new byte[0]);
         }
     }
 
     public byte[] getChunk(String key) {
-        return Peer.chunks.get(key);
+        return chunks.get(key);
     }
 
     public void removeChunk(String fileId, int chunkNo) {
-        Peer.chunks.remove(fileId + chunkNo);
+        chunks.remove(fileId + chunkNo);
     }
 }

@@ -37,8 +37,6 @@ public class Peer implements RMIService {
 
     private static HashMap<String, FileInfo> restorations = new HashMap<>();
 
-    public static HashMap<String, byte[]> chunks = new HashMap<>();
-
     public static String remObj;
 
     public static Channel mcChannel;
@@ -132,7 +130,7 @@ public class Peer implements RMIService {
 		replies.put(id, info);
 		saveRepliesToFile();
 	}
-
+	
 	public static void deleteReply(ChunkId id) {
 		replies.remove(id);
 		saveRepliesToFile();
@@ -222,7 +220,7 @@ public class Peer implements RMIService {
     public boolean reclaim(int space) {
     	Reclaim reclaim = new Reclaim(space);
     	Thread t = new Thread(reclaim);
-    	protocols.put("BACKUP " + reclaim.getFileId(), t);
+    	protocols.put("RECLAIM " + reclaim.getFileId(), t);
         t.start();
     	return true;
     }
