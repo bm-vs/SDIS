@@ -7,6 +7,7 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.security.MessageDigest;
+import java.util.Arrays;
 
 public class Backup extends SubProtocol implements Runnable {
 
@@ -41,10 +42,15 @@ public class Backup extends SubProtocol implements Runnable {
         do {
             //read bytes from file
             try {
-                i = in.read(body, 0, MAX_SIZE);
+                i = in.read(body);
                 numChunks++;
             } catch (IOException err) {
                 System.err.println(err);
+            }
+
+            if(i != 64000 && i != -1){
+                byte[] temp = Arrays.copyOfRange(body, 0, i);
+                body = temp;
             }
 
             buf = createPacket(body, numChunks);
@@ -69,20 +75,19 @@ public class Backup extends SubProtocol implements Runnable {
             } while(confirmations < replDegree && repeats < SEND_REPEAT);
             if(confirmations >= replDegree){
                 timeout = 500;
-                System.out.println("Stored chunk with acceptable replication degree");
+                System.out.println("Stored chunk " + numChunks + " with acceptable replication degree: " + confirmations);
             } else{
                 System.out.println("No answer");
             }
         } while(i == 64000);
 
         System.out.println("Backup completed");
-
         Peer.savePath(filePath, fileId, numChunks);
     }
 
     public String createHeader(int chunkNo){
         String common = super.getCommonHeader();
-        String header = "PUTCHUNK " + common + " " + chunkNo + " " + replDegree + " \r\n\r\n";
+        String header = "PUTCHUNK " + common + " " + fileId + " " + chunkNo + " " + replDegree + " \r\n\r\n";
 
         return header;
     };

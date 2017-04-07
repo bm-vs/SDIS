@@ -3,17 +3,15 @@ package Chunks;
 
 import Server.Peer;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.*;
+import java.util.Arrays;
 import java.util.Random;
 
 public class ChunkSend implements Runnable {
-    String fileId;
-    int chunkNo;
-    byte[] body = new byte[64000];
-    final String storageFolder = "storage";
+    private String fileId;
+    private int chunkNo;
+    private byte[] body = new byte[64000];
+    private final String storageFolder = "storage";
 
     public ChunkSend(String fileId, int chunkNo){
         this.fileId = fileId;
@@ -21,43 +19,54 @@ public class ChunkSend implements Runnable {
     }
 
     public void run() {
-        try {
-            String fileName = storageFolder + "/" + fileId + " " + chunkNo;
-            File file = new File(fileName);
-            if(!file.exists()){
-                return;
-            }
-            RandomAccessFile r = new RandomAccessFile(fileName, "r");
-            r.read(body);
-            r.close();
-
-            //send through mdrChannel
-            String header = "CHUNK " + Peer.peerId.toString() + " " + fileId + " " + chunkNo + " \r\n\r\n";
-
-            byte[] headerArray = header.getBytes();
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            try {
-                outputStream.write(headerArray);
-                outputStream.write(body);
-            } catch(IOException err){
-                System.err.println(err);
-            }
-
-            //wait 0 to 400ms and check if someone already sent
-            Random rnd = new Random();
-            int time = rnd.nextInt(400);
-            try {
-                Thread.sleep(time);
-            }catch(InterruptedException err){
-                System.err.println(err);
-            }
-            if(Peer.mdrChannel.getChunk(fileId, chunkNo) == null){
-                return;
-            }
-
-            Peer.sendToChannel(outputStream.toByteArray(), Peer.mdrChannel);
-        }catch(IOException err){
-            System.err.println(err);
+        String fileName = storageFolder + "/" + fileId + "/" + chunkNo;
+        File file = new File(fileName);
+        if(!file.exists()){
+            return;
         }
+        byte[] buf = createPacket(fileName);
+
+        //wait 0 to 400ms and check if someone already sent
+        try {
+            Random rnd = new Random();
+            Thread.sleep(rnd.nextInt(400));
+        }catch(InterruptedException err){
+            err.printStackTrace();
+        }
+        if(Peer.mdrChannel.getChunk(fileId + chunkNo) != null){
+            Peer.mdrChannel.removeChunk(fileId, chunkNo);
+            return;
+        }
+        Peer.sendToChannel(buf, Peer.mdrChannel);
+    }
+
+    byte[] createPacket(String fileName){
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        try{
+            byte[] body = readChunk(fileName);
+            String header = "CHUNK " + Peer.peerId.toString() + " " + fileId + " " + chunkNo + " \r\n\r\n";
+            byte[] headerArray = header.getBytes();
+            outputStream.write(headerArray);
+            outputStream.write(body);
+        } catch(IOException err){
+            err.printStackTrace();
+        }
+        return outputStream.toByteArray();
+    }
+
+    byte[] readChunk(String fileName){
+        try {
+
+            RandomAccessFile r = new RandomAccessFile(fileName, "r");
+            int i = r.read(body);
+            r.close();
+            if(i != 64000){
+                body = Arrays.copyOfRange(body, 0, i);
+            }
+            return body;
+        }catch(IOException err){
+            err.printStackTrace();
+        }
+        return null;
     }
 }

@@ -22,13 +22,15 @@ public class MCChannel extends Channel{
 
     public void handle(DatagramPacket packet){
         super.handle(packet);
-
+        if(Integer.parseInt(packetHeader[Field.senderId]) == Peer.peerId.id){
+            return;
+        }
         switch(packetHeader[Field.type]){
             case "STORED":
                 storedMessage(packetHeader);
                 break;
             case "GETCHUNK":
-                new Thread(new ChunkSend(packetHeader[Field.fileId], Integer.parseInt(packetHeader[Field.chunkNo]))).run();
+                new Thread(new ChunkSend(packetHeader[Field.fileId], Integer.parseInt(packetHeader[Field.chunkNo]))).start();
                 break;
             case "DELETE":
                 new Thread(new ChunkDelete(packetHeader[Field.fileId]));
@@ -56,18 +58,11 @@ public class MCChannel extends Channel{
     public void storedMessage(String[] args){
         String fileId = args[3];
         int chunkNo = Integer.parseInt(args[4]);
-        String senderId = args[2];
         ChunkId id = new ChunkId(fileId, chunkNo);
         ChunkInfo info;
         if ((info = Peer.getChunkInfo(id)) != null){
             info.confirmations++;
             Peer.addReply(id, info);
-
-            //TODO check if thread exists
-            if(info.confirmations >= info.replDegree && Peer.threadExists("BACKUP " + fileId)){
-                Peer.wakeThread(fileId + " " + chunkNo);
-            }
-
         }
 
     }

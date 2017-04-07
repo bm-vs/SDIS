@@ -26,6 +26,6 @@ public class SubProtocol {
     }
 
     String getCommonHeader(){
-        return Peer.peerId.toString() + " " + fileId;
+        return Peer.peerId.toString();
     }
 }

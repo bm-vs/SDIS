@@ -35,7 +35,9 @@ public class Peer implements RMIService {
     //when creating thread puts it into this hashmap
     private static HashMap<String, Thread> protocols = new HashMap<>();
 
-    static HashMap<String, FileInfo> restorations = new HashMap<>();
+    private static HashMap<String, FileInfo> restorations = new HashMap<>();
+
+    public static HashMap<String, byte[]> chunks = new HashMap<>();
 
     public static String remObj;
 
@@ -111,7 +113,7 @@ public class Peer implements RMIService {
 
     public static void wakeThread(String key){
         Thread t = protocols.get(key);
-        //t.interrupt();
+        t.interrupt();
     }
 
     public static boolean threadExists(String key){
@@ -207,7 +209,8 @@ public class Peer implements RMIService {
     public boolean restore(String file) {
         Restore restore = new Restore(file);
         Thread t = new Thread(restore);
-        protocols.put("BACKUP " + restore.getFileId(), t);
+        protocols.put("RESTORE " + restore.getFileId(), t);
+        t.start();
         return true;
     }
     

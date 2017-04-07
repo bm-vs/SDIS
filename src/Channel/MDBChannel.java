@@ -23,7 +23,7 @@ public class MDBChannel extends Channel{
         super.handle(packet);
         if(Integer.parseInt(packetHeader[Field.senderId]) == Peer.peerId.id)
             return;
-        String type = packetHeader[0];
+        String type = packetHeader[Field.type];
         switch (type){
             case Type.putchunk:
                 handlePUTCHUNK(packetHeader, packetBody);
@@ -35,19 +35,22 @@ public class MDBChannel extends Channel{
         String fileId = packetHeader[Field.fileId];
         int chunkNo = Integer.parseInt(packetHeader[Field.chunkNo]);
         ChunkSave store = new ChunkSave(fileId, chunkNo, body);
-        new Thread(store).run();
-
+        new Thread(store).start();
         int replDegree = Integer.parseInt(packetHeader[Field.replication]);
-
 
         //create entry in hashmap of replies
         Peer.addReply(new ChunkId(fileId, chunkNo), new ChunkInfo(replDegree, 1));
 
-        //send response
-        answer(Type.stored, fileId, packetHeader[Field.chunkNo]);
+        try {
+            Random rnd = new Random();
+            Thread.sleep(rnd.nextInt(400));
+        }catch(InterruptedException err){
+            err.printStackTrace();
+        }
+        answer(fileId, packetHeader[Field.chunkNo]);
     }
 
-    private void answer(String type, String fileId, String chunkNo){
+    private void answer(String fileId, String chunkNo){
         PeerId peerId= Peer.peerId;
         String message = Type.stored + " " +
                 peerId.version + " " +
