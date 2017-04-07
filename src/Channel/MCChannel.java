@@ -1,6 +1,7 @@
 package Channel;
 
 
+import Chunks.ChunkDelete;
 import Chunks.ChunkId;
 import Chunks.ChunkInfo;
 import Chunks.ChunkSend;
@@ -30,6 +31,7 @@ public class MCChannel extends Channel{
                 new Thread(new ChunkSend(packetHeader[Field.fileId], Integer.parseInt(packetHeader[Field.chunkNo]))).run();
                 break;
             case "DELETE":
+                new Thread(new ChunkDelete(packetHeader[Field.fileId]));
                 break;
             case "REMOVED":
                 break;
@@ -62,10 +64,11 @@ public class MCChannel extends Channel{
             Peer.addReply(id, info);
 
             //TODO check if thread exists
-            if(info.confirmations >= info.replDegree){
+            if(info.confirmations >= info.replDegree && Peer.threadExists("BACKUP " + fileId)){
                 Peer.wakeThread(fileId + " " + chunkNo);
             }
 
         }
+
     }
 }

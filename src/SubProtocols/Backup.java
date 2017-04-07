@@ -1,14 +1,12 @@
 package SubProtocols;
 
-import Client.TestClient;
 import Server.Peer;
-import Server.PeerId;
 
 import java.io.*;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
-import java.net.SocketTimeoutException;
+import java.security.MessageDigest;
 
 public class Backup extends SubProtocol implements Runnable {
 
@@ -18,11 +16,11 @@ public class Backup extends SubProtocol implements Runnable {
     RandomAccessFile in;
     MulticastSocket socket;
     InetAddress address;
-    String filePath;
     int port;
 
-    public Backup(PeerId peerId, String filePath, int replDegree, MulticastSocket socket, InetAddress address, int port){
-        super(peerId, filePath);
+    public Backup(String filePath, int replDegree, MulticastSocket socket, InetAddress address, int port){
+        super(filePath);
+        fileId = getFileId(filePath);
         this.replDegree = replDegree;
         this.socket = socket;
         this.address = address;
@@ -100,5 +98,26 @@ public class Backup extends SubProtocol implements Runnable {
             System.err.println(err);
         }
         return outputStream.toByteArray();
+    }
+
+    protected static String getFileId(String path) {
+        File file = new File(path);
+        String base = path + file.lastModified() + file.length();
+
+        try{
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(base.getBytes("UTF-8"));
+            StringBuffer hexString = new StringBuffer();
+
+            for (int i = 0; i < hash.length; i++) {
+                String hex = Integer.toHexString(0xff & hash[i]);
+                if(hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+
+            return hexString.toString();
+        } catch(Exception ex){
+            throw new RuntimeException(ex);
+        }
     }
 }

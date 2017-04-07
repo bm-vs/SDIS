@@ -20,14 +20,17 @@ public class ChunkSave implements Runnable {
     public void run() {
         try {
             File file = new File(storageFolder);
-            if(!file.exists()){
+            if(!file.exists())
                 file.mkdir();
-            }
-            RandomAccessFile r = new RandomAccessFile(storageFolder + "/" + fileId + " " + chunkNo, "rw");
+            file = new File(storageFolder + "/" + fileId);
+            if(!file.exists())
+                file.mkdir();
+
+            RandomAccessFile r = new RandomAccessFile(storageFolder + "/" + fileId + "/" + chunkNo, "rw");
             r.write(body);
             r.close();
         }catch(IOException err){
-            return;
+            err.printStackTrace();
         }
     }
 }

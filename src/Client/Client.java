@@ -29,7 +29,7 @@ public class Client {
         // Start RMI
         try {
             Registry registry = LocateRegistry.getRegistry("localhost");
-        	RMIService peer = (RMIService) registry.lookup("Peer");
+        	RMIService peer = (RMIService) registry.lookup(args[0]);
 
         	boolean status = false;
         	
@@ -38,10 +38,10 @@ public class Client {
 	            	status = peer.backup(op1, op2);
 	                break;
 	            case "RESTORE":
-	            	status = peer.restore();
+	            	status = peer.restore(op1);
 	                break;
 	            case "DELETE":
-	            	status = peer.delete();
+	            	status = peer.delete(op1);
 	                break;
 	            case "RECLAIM":
 	            	status = peer.reclaim();

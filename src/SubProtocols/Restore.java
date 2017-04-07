@@ -1,23 +1,13 @@
 package SubProtocols;
 
 import File.FileInfo;
-import File.File;
+import File.FileRestore;
 import Server.Peer;
-import Server.PeerId;
-
-import java.net.InetAddress;
-import java.net.MulticastSocket;
 
 public class Restore extends SubProtocol implements Runnable{
 
-    String filePath;
-
-    public Restore(PeerId peerId, String filePath, MulticastSocket socket, InetAddress address, int port){
-        super(peerId, filePath);
-        this.socket = socket;
-        this.address = address;
-        this.port = port;
-        this.filePath = filePath;
+    public Restore(String filePath){
+        super(filePath);
     }
 
     public void run(){
@@ -36,7 +26,7 @@ public class Restore extends SubProtocol implements Runnable{
                 Thread.sleep(1000);
             }catch(InterruptedException err){
                 byte[] body = Peer.mdrChannel.getChunk(fileId, i);
-                new Thread(new File(filePath, body)).run();
+                new Thread(new FileRestore(filePath, body)).run();
             }
         }
     }

@@ -3,12 +3,15 @@ package File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
-public class File implements Runnable {
+/**
+ * For restore, writes the byte array received to file in filePath
+ */
+public class FileRestore implements Runnable {
 
     private byte[] body;
     private String filePath;
 
-    public File(String file, byte[] body){
+    public FileRestore(String file, byte[] body){
         this.body = body;
         this.filePath = file;
     }

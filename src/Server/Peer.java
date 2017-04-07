@@ -6,6 +6,7 @@ import Chunks.ChunkId;
 import Chunks.ChunkInfo;
 import File.FileInfo;
 import SubProtocols.Backup;
+import SubProtocols.Restore;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -109,13 +110,11 @@ public class Peer implements RMIService {
 
     public static void wakeThread(String key){
         Thread t = protocols.get(key);
-        t.interrupt();
+        //t.interrupt();
     }
 
     public static boolean threadExists(String key){
-        if(protocols.get(key) != null){
-            return true;
-        } else return false;
+        return protocols.get(key) != null;
     }
 
     public static HashMap<ChunkId, ChunkInfo> getReplies() {
@@ -193,21 +192,25 @@ public class Peer implements RMIService {
         System.out.println("Wrong number of arguments");
         System.out.println("Usage: java Server.Peer version id RmiName mcAddress mcPort mdbAddress mdbPort mdrAddress mdrPort");
     }
-    
+
+    //TODO
+    //is it useful to add threads to hashmap since you cannot interrupt sleep during backup?
     public boolean backup(String file, int replDegree) {
-        Backup backup = new Backup(peerId, file, replDegree, socket, mdbChannel.address, mdbChannel.port);
+        Backup backup = new Backup(file, replDegree, socket, mdbChannel.address, mdbChannel.port);
         Thread t = new Thread(backup);
         protocols.put("BACKUP " + backup.getFileId(), t);
         t.start();
     	return true;
     }
     
-    public boolean restore() {
-    	System.out.println("Restore");
-    	return true;
+    public boolean restore(String file) {
+        Restore restore = new Restore(file);
+        Thread t = new Thread(restore);
+        protocols.put("BACKUP " + restore.getFileId(), t);
+        return true;
     }
     
-    public boolean delete() {
+    public boolean delete(String file) {
     	System.out.println("Delete");
     	return true;
     }

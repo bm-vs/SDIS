@@ -1,53 +1,31 @@
 package SubProtocols;
 
 import Server.Peer;
-import Server.PeerId;
 
-import java.io.File;
 import java.io.RandomAccessFile;
-import java.net.InetAddress;
-import java.net.MulticastSocket;
-import java.security.MessageDigest;
 
 public class SubProtocol {
 
+    String filePath;
+
     protected String fileId;
     protected RandomAccessFile in;
-    protected MulticastSocket socket;
-    protected InetAddress address;
-    protected int port;
 
-    SubProtocol(PeerId peer, String filePath){
-        fileId = getFileId(filePath);
+    final static public String BACKUP = "BACKUP";
+    final static public String RESTORE = "RESTORE";
+    final static public String DELETE = "DELETE";
+    final static public String REMOVED = "REMOVED";
 
-    }
 
-    private static String getFileId(String path) {
-        File file = new File(path);
-        String base = path + file.lastModified() + file.length();
-
-        try{
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(base.getBytes("UTF-8"));
-            StringBuffer hexString = new StringBuffer();
-
-            for (int i = 0; i < hash.length; i++) {
-                String hex = Integer.toHexString(0xff & hash[i]);
-                if(hex.length() == 1) hexString.append('0');
-                hexString.append(hex);
-            }
-
-            return hexString.toString();
-        } catch(Exception ex){
-            throw new RuntimeException(ex);
-        }
+    SubProtocol(String filePath){
+        this.filePath = filePath;
     }
 
     public String getFileId(){
         return fileId;
     }
 
-    protected String getCommonHeader(){
+    String getCommonHeader(){
         return Peer.peerId.toString() + " " + fileId;
     }
 }
