@@ -5,6 +5,8 @@ import java.io.RandomAccessFile;
 import java.net.DatagramPacket;
 import java.util.Random;
 
+import Chunks.ChunkId;
+import Chunks.ChunkInfo;
 import Chunks.ChunkSave;
 import Header.Field;
 import Header.Type;
@@ -35,6 +37,12 @@ public class MDBChannel extends Channel{
         ChunkSave store = new ChunkSave(fileId, chunkNo, body);
         new Thread(store).run();
 
+        int replDegree = Integer.parseInt(packetHeader[Field.replication]);
+
+
+        //create entry in hashmap of replies
+        Peer.addReply(new ChunkId(fileId, chunkNo), new ChunkInfo(replDegree, 1));
+
         //send response
         answer(Type.stored, fileId, packetHeader[Field.chunkNo]);
     }
@@ -48,13 +56,7 @@ public class MDBChannel extends Channel{
                 chunkNo + " " +
                 Field.cr + Field.lf +
                 Field.cr + Field.lf;
-        Random rnd = new Random();
-        int time = rnd.nextInt(400);
-        try {
-            Thread.sleep(time);
-        }catch(InterruptedException err){
-            System.err.println(err);
-        }
+
         Peer.sendToChannel(message.getBytes(), Peer.mcChannel);
     }
 }

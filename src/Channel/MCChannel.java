@@ -3,6 +3,7 @@ package Channel;
 
 import Chunks.ChunkId;
 import Chunks.ChunkInfo;
+import Chunks.ChunkSend;
 import Header.Field;
 import Server.Peer;
 
@@ -26,7 +27,7 @@ public class MCChannel extends Channel{
                 storedMessage(packetHeader);
                 break;
             case "GETCHUNK":
-
+                new Thread(new ChunkSend(packetHeader[Field.fileId], Integer.parseInt(packetHeader[Field.chunkNo]))).run();
                 break;
             case "DELETE":
                 break;
@@ -47,7 +48,6 @@ public class MCChannel extends Channel{
     public int getStoredMessages(String fileId, int chunkNo){
         ChunkId key = new ChunkId(fileId, chunkNo);
         ChunkInfo c = Peer.getChunkInfo(key);
-        Peer.deleteReply(key);
         return c.confirmations;
     }
 
@@ -61,9 +61,11 @@ public class MCChannel extends Channel{
             info.confirmations++;
             Peer.addReply(id, info);
 
+            //TODO check if thread exists
             if(info.confirmations >= info.replDegree){
                 Peer.wakeThread(fileId + " " + chunkNo);
             }
+
         }
     }
 }

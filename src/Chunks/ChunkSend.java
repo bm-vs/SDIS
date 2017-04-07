@@ -7,6 +7,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.Random;
 
 public class ChunkSend implements Runnable {
     String fileId;
@@ -40,6 +41,18 @@ public class ChunkSend implements Runnable {
                 outputStream.write(body);
             } catch(IOException err){
                 System.err.println(err);
+            }
+
+            //wait 0 to 400ms and check if someone already sent
+            Random rnd = new Random();
+            int time = rnd.nextInt(400);
+            try {
+                Thread.sleep(time);
+            }catch(InterruptedException err){
+                System.err.println(err);
+            }
+            if(Peer.mdrChannel.getChunk(fileId, chunkNo) == null){
+                return;
             }
 
             Peer.sendToChannel(outputStream.toByteArray(), Peer.mdrChannel);

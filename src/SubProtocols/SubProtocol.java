@@ -1,5 +1,6 @@
 package SubProtocols;
 
+import Server.Peer;
 import Server.PeerId;
 
 import java.io.File;
@@ -10,7 +11,6 @@ import java.security.MessageDigest;
 
 public class SubProtocol {
 
-    protected PeerId peer;
     protected String fileId;
     protected RandomAccessFile in;
     protected MulticastSocket socket;
@@ -18,12 +18,11 @@ public class SubProtocol {
     protected int port;
 
     SubProtocol(PeerId peer, String filePath){
-        this.peer = peer;
         fileId = getFileId(filePath);
 
     }
 
-    protected static String getFileId(String path) {
+    private static String getFileId(String path) {
         File file = new File(path);
         String base = path + file.lastModified() + file.length();
 
@@ -49,6 +48,6 @@ public class SubProtocol {
     }
 
     protected String getCommonHeader(){
-        return peer.version + " " + peer.id + " " + fileId;
+        return Peer.peerId.toString() + " " + fileId;
     }
 }

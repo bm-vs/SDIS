@@ -22,7 +22,7 @@ public class MDRChannel extends Channel {
         super.handle(packet);
         if(Integer.parseInt(packetHeader[Field.senderId]) == Peer.peerId.id)
             return;
-        String type = packetHeader[0];
+        String type = packetHeader[Field.type];
         switch (type){
             case Type.chunk:
                 handleCHUNK(packetHeader, packetBody);
@@ -35,8 +35,10 @@ public class MDRChannel extends Channel {
         String key = "RESTORE " + packetHeader[Field.fileId];
         if(Peer.threadExists(key)) {
             //put byte array to hashmap and wake up restore thread
-            chunks.put(packetHeader[Field.fileId] + Field.chunkNo, body);
+            chunks.put(packetHeader[Field.fileId] + packetHeader[Field.chunkNo], body);
             Peer.wakeThread(key);
+        } else{
+            chunks.put(packetHeader[Field.fileId] + packetHeader[Field.chunkNo], new byte[0]);
         }
     }
 
