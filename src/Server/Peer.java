@@ -97,10 +97,9 @@ public class Peer implements RMIService {
         remObj = args[2];
     }
 
-    public static void sendToChannel(String message, Channel channel){
-        byte[]buf = message.getBytes();
+    public static void sendToChannel(byte[] message, Channel channel){
 
-        DatagramPacket packet = new DatagramPacket(buf, buf.length, channel.address, channel.port);
+        DatagramPacket packet = new DatagramPacket(message, message.length, channel.address, channel.port);
         try {
             socket.send(packet);
         }catch(IOException err){

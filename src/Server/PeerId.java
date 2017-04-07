@@ -8,4 +8,8 @@ public class PeerId {
         this.id = id;
         this.version = version;
     }
+
+    public String toString(){
+        return version + " " + id;
+    }
 }

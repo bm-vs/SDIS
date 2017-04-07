@@ -30,7 +30,7 @@ public class Restore extends SubProtocol implements Runnable{
             //send to mcchannel the getchunk request
             String header = createHeader(i);
 
-            Peer.sendToChannel(header, Peer.mcChannel);
+            Peer.sendToChannel(header.getBytes(), Peer.mcChannel);
             //append to file named in filepath
             try{
                 Thread.sleep(1000);

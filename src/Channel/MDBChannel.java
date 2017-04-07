@@ -55,6 +55,6 @@ public class MDBChannel extends Channel{
         }catch(InterruptedException err){
             System.err.println(err);
         }
-        Peer.sendToChannel(message, Peer.mcChannel);
+        Peer.sendToChannel(message.getBytes(), Peer.mcChannel);
     }
 }

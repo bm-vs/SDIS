@@ -4,6 +4,7 @@ package Channel;
 import Chunks.ChunkId;
 import Chunks.ChunkInfo;
 import Header.Field;
+import Server.Peer;
 
 import java.net.DatagramPacket;
 import java.util.HashMap;
@@ -25,6 +26,7 @@ public class MCChannel extends Channel{
                 storedMessage(packetHeader);
                 break;
             case "GETCHUNK":
+
                 break;
             case "DELETE":
                 break;
@@ -37,15 +39,15 @@ public class MCChannel extends Channel{
         ChunkId key = new ChunkId(fileId, chunkNo);
         ChunkInfo value = new ChunkInfo(replDegree);
 		
-        if(peer.getChunkInfo(key) == null){
-            peer.addReply(key, value);
+        if(Peer.getChunkInfo(key) == null){
+            Peer.addReply(key, value);
         }
     }
 
     public int getStoredMessages(String fileId, int chunkNo){
         ChunkId key = new ChunkId(fileId, chunkNo);
-        ChunkInfo c = peer.getChunkInfo(key);
-        peer.deleteReply(key);
+        ChunkInfo c = Peer.getChunkInfo(key);
+        Peer.deleteReply(key);
         return c.confirmations;
     }
 
@@ -55,12 +57,12 @@ public class MCChannel extends Channel{
         String senderId = args[2];
         ChunkId id = new ChunkId(fileId, chunkNo);
         ChunkInfo info;
-        if ((info = peer.getChunkInfo(id)) != null){
+        if ((info = Peer.getChunkInfo(id)) != null){
             info.confirmations++;
-            peer.addReply(id, info);
+            Peer.addReply(id, info);
 
             if(info.confirmations >= info.replDegree){
-                peer.wakeThread(fileId + " " + chunkNo);
+                Peer.wakeThread(fileId + " " + chunkNo);
             }
         }
     }
