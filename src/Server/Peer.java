@@ -7,6 +7,7 @@ import Chunks.ChunkInfo;
 import File.FileInfo;
 import SubProtocols.Backup;
 import SubProtocols.Restore;
+import SubProtocols.Reclaim;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -215,8 +216,11 @@ public class Peer implements RMIService {
     	return true;
     }
     
-    public boolean reclaim() {
-    	System.out.println("Reclaim");
+    public boolean reclaim(int space) {
+    	Reclaim reclaim = new Reclaim(space);
+    	Thread t = new Thread(reclaim);
+    	protocols.put("BACKUP " + reclaim.getFileId(), t);
+        t.start();
     	return true;
     }
 }

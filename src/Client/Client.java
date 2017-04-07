@@ -44,7 +44,7 @@ public class Client {
 	            	status = peer.delete(op1);
 	                break;
 	            case "RECLAIM":
-	            	status = peer.reclaim();
+	            	status = peer.reclaim(Integer.parseInt(op1));
 	                break;
         	}
         	
