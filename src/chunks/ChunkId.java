@@ -19,6 +19,11 @@ public class ChunkId {
 		return chunkNo;
 	}
 
+	@Override
+    public String toString(){
+        return "Id: " + fileId + " " + chunkNo;
+    }
+
     @Override
     public boolean equals(Object obj){
         if(this == obj)

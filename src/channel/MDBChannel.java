@@ -6,6 +6,7 @@ import java.net.DatagramPacket;
 import chunks.ChunkSave;
 import header.Field;
 import header.Type;
+import server.Peer;
 
 public class MDBChannel extends Channel{
 

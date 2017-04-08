@@ -32,7 +32,7 @@ public class ChunkSave implements Runnable {
             Utils.waitTime();
 
             //create entry in hashmap of replies
-            Peer.addReply(new ChunkId(fileId, chunkNo), new ChunkInfo(replication, 1));
+            Peer.addReply(new ChunkId(fileId, chunkNo), new ChunkInfo(replication, 1, body.length));
             String header = Channel.createHeader(Type.stored, fileId, chunkNo, -1);
             Peer.sendToChannel(header.getBytes(), Peer.mcChannel);
         }catch(IOException err){

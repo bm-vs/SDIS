@@ -148,7 +148,7 @@ public class Peer implements RMIService {
 			
 			for (ChunkId key: replies.keySet()) {
 				out.write(key.getFileId() + " " + ((Integer) key.getChunkNo()).toString() + "\n");
-				out.write(replies.get(key).replDegree + " " + replies.get(key).confirmations + "\n");
+				out.write(replies.get(key).replDegree + " " + replies.get(key).confirmations + " " + replies.get(key).size + "\n");
 			}
 
 			out.close();
@@ -179,7 +179,7 @@ public class Peer implements RMIService {
                 splitName = fileName.split(" ");
                 splitInfo = info.split(" ");
                 chunkId = new ChunkId(splitName[0], Integer.parseInt(splitName[1]));
-                chunkInfo = new ChunkInfo(Integer.parseInt(splitInfo[0]), Integer.parseInt(splitInfo[1]));
+                chunkInfo = new ChunkInfo(Integer.parseInt(splitInfo[0]), Integer.parseInt(splitInfo[1]), Integer.parseInt(splitInfo[2]));
                 replies.put(chunkId, chunkInfo);
 
             }catch(IOException err){
@@ -253,6 +253,12 @@ public class Peer implements RMIService {
     public String state(){
         String state = "Files backed up from this peer:\n";
         for(HashMap.Entry<String, FileInfo> info: restorations.entrySet()){
+            state += "FilePath: " + info.getKey() + "\n";
+            state += info.getValue();
+        }
+
+        state += "\n\nChunks saved in this peer:\n";
+        for(HashMap.Entry<ChunkId, ChunkInfo> info: replies.entrySet()){
             state += "FilePath: " + info.getKey() + "\n";
             state += info.getValue();
         }
