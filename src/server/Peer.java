@@ -27,7 +27,7 @@ public class Peer implements RMIService {
 
 	private static final String INDEXFILE = "index.txt";
 
-    private static MulticastSocket socket;
+    public static MulticastSocket socket;
 
     //stored messages received by peers that have the corresponding chunk
     private static HashMap<ChunkId, ChunkInfo> replies = new HashMap<>();
@@ -121,7 +121,7 @@ public class Peer implements RMIService {
     public static boolean threadExists(String key){
         return protocols.get(key) != null;
     }
-
+    
     public static HashMap<ChunkId, ChunkInfo> getReplies() {
 		return replies;
 	}
@@ -203,7 +203,10 @@ public class Peer implements RMIService {
         return restorations;
     }
 
-
+    public static void addProtocol(String name, String identifier, Thread t) {
+    	protocols.put(name + " " + identifier, t);
+    }
+    
     private static void printUsage() {
         System.out.println("Wrong number of arguments");
         System.out.println("Usage: java Server.Peer version id RmiName mcAddress mcPort mdbAddress mdbPort mdrAddress mdrPort");
