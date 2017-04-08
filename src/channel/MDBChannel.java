@@ -33,6 +33,13 @@ public class MDBChannel extends Channel{
         String fileId = packetHeader[Field.fileId];
         int chunkNo = Integer.parseInt(packetHeader[Field.chunkNo]);
         int replDegree = Integer.parseInt(packetHeader[Field.replication]);
+        
+        // If chunk backup pending from reclaim
+        String thread_id = "CHUNKBACKUP" + " " + fileId + " " + chunkNo;
+        if (Peer.threadExists(thread_id)) {
+        	Peer.wakeThread(thread_id);
+        }
+        
         ChunkSave store = new ChunkSave(fileId, chunkNo, replDegree, body);
         new Thread(store).start();
     }

@@ -77,10 +77,13 @@ public class MCChannel extends Channel{
     	ChunkInfo info;
     	if ((info = Peer.getChunkInfo(id)) != null) {
     		info.confirmations++;
+    		info.confirmations--;
     		Peer.addReply(id, info);
     		
         	if (info.confirmations < info.replDegree) {
-        		new Thread(new ChunkReclaim(id.getFileId(), id.getChunkNo())).run();
+        		Thread t = new Thread(new ChunkReclaim(id, info));
+        		Peer.addProtocol("CHUNKBACKUP", fileId + " " + chunkNo, t);
+        		t.run();
         	}   		
     	}
     }
