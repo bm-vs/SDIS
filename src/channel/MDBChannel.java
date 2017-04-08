@@ -32,20 +32,8 @@ public class MDBChannel extends Channel{
         //create backup using info in header
         String fileId = packetHeader[Field.fileId];
         int chunkNo = Integer.parseInt(packetHeader[Field.chunkNo]);
-        ChunkSave store = new ChunkSave(fileId, chunkNo, body);
-        new Thread(store).start();
         int replDegree = Integer.parseInt(packetHeader[Field.replication]);
-
-        //create entry in hashmap of replies
-        Peer.addReply(new ChunkId(fileId, chunkNo), new ChunkInfo(replDegree, 1));
-
-        try {
-            Random rnd = new Random();
-            Thread.sleep(rnd.nextInt(400));
-        }catch(InterruptedException err){
-            err.printStackTrace();
-        }
-        String header = Channel.createHeader(Type.stored, fileId, chunkNo, -1);
-        Peer.sendToChannel(header.getBytes(), Peer.mcChannel);
+        ChunkSave store = new ChunkSave(fileId, chunkNo, replDegree, body);
+        new Thread(store).start();
     }
 }

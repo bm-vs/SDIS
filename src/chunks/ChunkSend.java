@@ -2,6 +2,7 @@ package chunks;
 
 
 import server.Peer;
+import utils.Utils;
 
 import java.io.*;
 import java.util.Arrays;
@@ -10,8 +11,7 @@ import java.util.Random;
 public class ChunkSend implements Runnable {
     private String fileId;
     private int chunkNo;
-    private byte[] body = new byte[64000];
-    private final String storageFolder = "storage";
+    private byte[] body = new byte[Utils.MAX_BODY];
 
     public ChunkSend(String fileId, int chunkNo){
         this.fileId = fileId;
@@ -19,28 +19,22 @@ public class ChunkSend implements Runnable {
     }
 
     public void run() {
-        String fileName = storageFolder + "/" + fileId + "/" + chunkNo;
+        String fileName = Utils.storage + "/" + fileId + "/" + chunkNo;
         File file = new File(fileName);
         if(!file.exists()){
             return;
         }
         byte[] buf = createPacket(fileName);
 
-        //wait 0 to 400ms and check if someone already sent
-        try {
-            Random rnd = new Random();
-            Thread.sleep(rnd.nextInt(400));
-        }catch(InterruptedException err){
-            err.printStackTrace();
-        }
-        if(Peer.mdrChannel.getChunk(fileId + chunkNo) != null){
+        Utils.waitTime();
+        if(Peer.mdrChannel.getChunk(fileId, chunkNo) != null){
             Peer.mdrChannel.removeChunk(fileId, chunkNo);
             return;
         }
         Peer.sendToChannel(buf, Peer.mdrChannel);
     }
 
-    byte[] createPacket(String fileName){
+    private byte[] createPacket(String fileName){
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         try{
             byte[] body = readChunk(fileName);
@@ -54,13 +48,13 @@ public class ChunkSend implements Runnable {
         return outputStream.toByteArray();
     }
 
-    byte[] readChunk(String fileName){
+    private byte[] readChunk(String fileName){
         try {
 
             RandomAccessFile r = new RandomAccessFile(fileName, "r");
             int i = r.read(body);
             r.close();
-            if(i != 64000){
+            if(i != Utils.MAX_BODY){
                 body = Arrays.copyOfRange(body, 0, i);
             }
             return body;

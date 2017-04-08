@@ -25,7 +25,7 @@ public class Restore extends SubProtocol implements Runnable{
             try {
                 Thread.sleep(10000);
             } catch (InterruptedException err) {
-                byte[] body = Peer.mdrChannel.getChunk(fileId + i);
+                byte[] body = Peer.mdrChannel.getChunk(fileId, i);
                 new Thread(new FileRestore(filePath, body)).start();
                 System.out.println("Chunk " + i + " transfered.");
                 i++;

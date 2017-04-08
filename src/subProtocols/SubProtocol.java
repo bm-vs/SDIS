@@ -13,8 +13,4 @@ public class SubProtocol {
     public String getFileId(){
         return fileId;
     }
-
-    static void waitBeforeSend(){
-
-    }
 }

@@ -19,7 +19,7 @@ public class Delete extends SubProtocol implements Runnable {
             System.out.println("This file is not backed up in this domain ");
             return;
         }
-
+        Peer.getRestorations().remove(filePath);
         String header = Channel.createHeader(Type.delete, fileId, -1, -1);
         Peer.sendToChannel(header.getBytes(), Peer.mcChannel);
     }

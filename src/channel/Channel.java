@@ -2,6 +2,7 @@ package channel;
 
 import header.Field;
 import server.Peer;
+import utils.Utils;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -50,10 +51,8 @@ public class Channel implements Runnable {
         String pac = new String(raw);
         String[] packetData = pac.split(Field.crlf+Field.crlf, 2);
         packetHeader = packetData[0].split("\\s+");
-        packetBody = Arrays.copyOfRange(raw, packetData[0].length() + 4, raw.length);
-        if(packetBody.length > 64000){
-            packetBody = Arrays.copyOfRange(packetBody, 0, 64000);
-        }
+        int headerLength = packetData[0].length() + Field.crlf.length() + Field.crlf.length();
+        packetBody = Arrays.copyOfRange(raw, headerLength, raw.length);
     }
 
     public void startStoredCount(String fileId, int chunkNo, int replDegree) {
@@ -75,7 +74,7 @@ public class Channel implements Runnable {
         return 5;
     }
 
-    public byte[] getChunk(String key) {
+    public byte[] getChunk(String fileId, int chunkNo) {
         return new byte[0];
     }
 

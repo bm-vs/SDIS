@@ -1,6 +1,7 @@
 package channel;
 
 
+import chunks.ChunkId;
 import header.Field;
 import header.Type;
 import server.Peer;
@@ -10,7 +11,7 @@ import java.util.HashMap;
 
 public class MDRChannel extends Channel {
 
-    public static HashMap<String, byte[]> chunks = new HashMap<>();
+    public static HashMap<ChunkId, byte[]> chunks = new HashMap<>();
 
     public MDRChannel(int port, String address){
         super(port, address);
@@ -31,7 +32,7 @@ public class MDRChannel extends Channel {
         //TODO
         //verify header for fileID and chunkNo
         String thread = "RESTORE " + packetHeader[Field.fileId];
-        String key = packetHeader[Field.fileId] + packetHeader[Field.chunkNo];
+        ChunkId key = new ChunkId(packetHeader[Field.fileId], Integer.parseInt(packetHeader[Field.chunkNo]));
         if(Peer.threadExists(thread)) {
             //put byte array to hashmap and wake up restore thread
             chunks.put(key, body);
@@ -41,11 +42,11 @@ public class MDRChannel extends Channel {
         }
     }
 
-    public byte[] getChunk(String key) {
-        return chunks.get(key);
+    public byte[] getChunk(String fileId, int chunkNo) {
+        return chunks.get(new ChunkId(fileId, chunkNo));
     }
 
     public void removeChunk(String fileId, int chunkNo) {
-        chunks.remove(fileId + chunkNo);
+        chunks.remove(new ChunkId(fileId,chunkNo));
     }
 }

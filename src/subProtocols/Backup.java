@@ -3,6 +3,7 @@ package subProtocols;
 import channel.Channel;
 import header.Type;
 import server.Peer;
+import utils.Utils;
 
 import java.io.*;
 import java.net.DatagramPacket;
@@ -13,7 +14,6 @@ import java.util.Arrays;
 
 public class Backup extends SubProtocol implements Runnable {
 
-    private final int MAX_SIZE = 64000;
     private final int SEND_REPEAT = 5;
     private int replDegree;
     RandomAccessFile in;
@@ -40,7 +40,7 @@ public class Backup extends SubProtocol implements Runnable {
 
         int i = 0, repeats, confirmations;
         int numChunks = 0, timeout = 500; //in miliseconds
-        byte[] buf, body = new byte[MAX_SIZE];
+        byte[] buf, body = new byte[Utils.MAX_BODY];
         do {
             //read bytes from file
             try {
@@ -50,27 +50,23 @@ public class Backup extends SubProtocol implements Runnable {
                 err.printStackTrace();
             }
 
-            if(i != 64000 && i != -1){
+            if(i != Utils.MAX_BODY && i != -1){
                 body = Arrays.copyOfRange(body, 0, i);
             }
 
             buf = createPacket(body, numChunks);
-            DatagramPacket packet = new DatagramPacket(buf, buf.length, address, port);
             repeats = 0;
             do{
                 repeats++;
                 timeout *= 2;
-                try{
-                    Peer.mcChannel.startStoredCount(fileId, numChunks, replDegree);
-                    socket.send(packet);
-                    try {
-                        Thread.sleep(timeout);
-                    } catch (InterruptedException err){
-                        err.printStackTrace();
-                    }
-                }catch (IOException err){
+                Peer.mcChannel.startStoredCount(fileId, numChunks, replDegree);
+                Peer.sendToChannel(buf, Peer.mdbChannel);
+                try {
+                    Thread.sleep(timeout);
+                } catch (InterruptedException err){
                     err.printStackTrace();
                 }
+
                 confirmations = Peer.mcChannel.getStoredMessages(fileId, numChunks);
 
             } while(confirmations < replDegree && repeats < SEND_REPEAT);
@@ -80,7 +76,7 @@ public class Backup extends SubProtocol implements Runnable {
             } else{
                 System.out.println("No answer");
             }
-        } while(i == 64000);
+        } while(i == Utils.MAX_BODY);
 
         System.out.println("Backup completed");
         Peer.savePath(filePath, fileId, numChunks);
