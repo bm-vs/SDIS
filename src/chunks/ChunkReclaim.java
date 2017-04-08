@@ -1,4 +1,4 @@
-package Chunks;
+package chunks;
 
 import java.io.RandomAccessFile;
 import java.util.Random;

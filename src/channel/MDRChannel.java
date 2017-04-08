@@ -1,12 +1,10 @@
-package Channel;
+package channel;
 
 
-import Header.Field;
-import Header.Type;
-import Server.Peer;
+import header.Field;
+import header.Type;
+import server.Peer;
 
-import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.net.DatagramPacket;
 import java.util.HashMap;
 

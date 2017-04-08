@@ -1,12 +1,14 @@
-package SubProtocols;
+package subProtocols;
 
 import java.io.File;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
-import Chunks.ChunkId;
-import Chunks.ChunkInfo;
-import Server.Peer;
+import channel.Channel;
+import chunks.ChunkId;
+import chunks.ChunkInfo;
+import header.Type;
+import server.Peer;
 
 public class Reclaim extends SubProtocol implements Runnable {
 	private String chunk_location = "storage";
@@ -32,7 +34,7 @@ public class Reclaim extends SubProtocol implements Runnable {
 				space_removed += chunk_file.length();
 				
 				// send removed
-				String header = createHeader(chunk.getKey().getChunkNo());
+				String header = Channel.createHeader(Type.removed, fileId, chunk.getKey().getChunkNo(), -1);
 				Peer.sendToChannel(header.getBytes(), Peer.mcChannel);
 				
 				// remove chunk file from file system
@@ -54,10 +56,5 @@ public class Reclaim extends SubProtocol implements Runnable {
 		} while (space_removed < space && Peer.getReplies().size() > 0);
 		// Remove while space removed < space to reclaim or there's nothing else to remove
 	}
-	
-	public String createHeader(int chunkNo){
-        String common = super.getCommonHeader();
-        String header = "REMOVED " + common + " " + chunkNo + " " + "\r\n\r\n";
-        return header;
-    }
+
 }

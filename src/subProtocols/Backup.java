@@ -1,6 +1,8 @@
-package SubProtocols;
+package subProtocols;
 
-import Server.Peer;
+import channel.Channel;
+import header.Type;
+import server.Peer;
 
 import java.io.*;
 import java.net.DatagramPacket;
@@ -36,7 +38,7 @@ public class Backup extends SubProtocol implements Runnable {
 
     public void run(){
 
-        int i = 0, repeats = 0, confirmations;
+        int i = 0, repeats, confirmations;
         int numChunks = 0, timeout = 500; //in miliseconds
         byte[] buf, body = new byte[MAX_SIZE];
         do {
@@ -45,12 +47,11 @@ public class Backup extends SubProtocol implements Runnable {
                 i = in.read(body);
                 numChunks++;
             } catch (IOException err) {
-                System.err.println(err);
+                err.printStackTrace();
             }
 
             if(i != 64000 && i != -1){
-                byte[] temp = Arrays.copyOfRange(body, 0, i);
-                body = temp;
+                body = Arrays.copyOfRange(body, 0, i);
             }
 
             buf = createPacket(body, numChunks);
@@ -65,10 +66,10 @@ public class Backup extends SubProtocol implements Runnable {
                     try {
                         Thread.sleep(timeout);
                     } catch (InterruptedException err){
-                        System.err.println(err);
+                        err.printStackTrace();
                     }
                 }catch (IOException err){
-                    System.err.println(err);
+                    err.printStackTrace();
                 }
                 confirmations = Peer.mcChannel.getStoredMessages(fileId, numChunks);
 
@@ -85,27 +86,20 @@ public class Backup extends SubProtocol implements Runnable {
         Peer.savePath(filePath, fileId, numChunks);
     }
 
-    public String createHeader(int chunkNo){
-        String common = super.getCommonHeader();
-        String header = "PUTCHUNK " + common + " " + fileId + " " + chunkNo + " " + replDegree + " \r\n\r\n";
-
-        return header;
-    };
-
     private byte[] createPacket(byte[]body, int numChunks){
-        String header = createHeader(numChunks);
+        String header = Channel.createHeader(Type.putchunk, fileId, numChunks, replDegree);
         byte[] headerArray = header.getBytes();
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         try {
             outputStream.write(headerArray);
             outputStream.write(body);
         } catch(IOException err){
-            System.err.println(err);
+            err.printStackTrace();
         }
         return outputStream.toByteArray();
     }
 
-    protected static String getFileId(String path) {
+    private static String getFileId(String path) {
         File file = new File(path);
         String base = path + file.lastModified() + file.length();
 

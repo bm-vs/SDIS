@@ -1,4 +1,4 @@
-package Chunks;
+package chunks;
 
 import java.io.File;
 
@@ -10,13 +10,15 @@ public class ChunkDelete implements Runnable {
     }
 
     public void run(){
-        File folder = new File("storage/" + fileId);
+        String folderName = "storage/" + fileId;
+        File folder = new File(folderName);
         if(folder.isDirectory()){
             String[] chunks = folder.list();
             for (int i = 0; i < chunks.length; i++) {
-                new File(chunks[1]).delete();
+                new File(folderName + "/" + chunks[i]).delete();
             }
             folder.delete();
         }
+        System.out.println("Deleted " + fileId + " and all its chunks");
     }
 }

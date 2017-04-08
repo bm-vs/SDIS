@@ -1,16 +1,16 @@
-package Channel;
+package channel;
 
 
-import Chunks.ChunkDelete;
-import Chunks.ChunkId;
-import Chunks.ChunkInfo;
-import Chunks.ChunkReclaim;
-import Chunks.ChunkSend;
-import Header.Field;
-import Server.Peer;
+import chunks.ChunkDelete;
+import chunks.ChunkId;
+import chunks.ChunkInfo;
+import chunks.ChunkReclaim;
+import chunks.ChunkSend;
+import header.Field;
+import header.Type;
+import server.Peer;
 
 import java.net.DatagramPacket;
-import java.util.HashMap;
 
 public class MCChannel extends Channel{
 
@@ -27,16 +27,16 @@ public class MCChannel extends Channel{
             return;
         }
         switch(packetHeader[Field.type]){
-            case "STORED":
+            case Type.stored:
                 storedMessage(packetHeader);
                 break;
-            case "GETCHUNK":
+            case Type.getchunk:
                 new Thread(new ChunkSend(packetHeader[Field.fileId], Integer.parseInt(packetHeader[Field.chunkNo]))).start();
                 break;
-            case "DELETE":
-                new Thread(new ChunkDelete(packetHeader[Field.fileId]));
+            case Type.delete:
+                new Thread(new ChunkDelete(packetHeader[Field.fileId])).start();
                 break;
-            case "REMOVED":
+            case Type.removed:
 				removedChunk(packetHeader);
                 break;
         }

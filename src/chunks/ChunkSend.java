@@ -1,7 +1,7 @@
-package Chunks;
+package chunks;
 
 
-import Server.Peer;
+import server.Peer;
 
 import java.io.*;
 import java.util.Arrays;

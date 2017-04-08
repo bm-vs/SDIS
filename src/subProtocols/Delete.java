@@ -1,22 +1,26 @@
-package SubProtocols;
+package subProtocols;
 
 
-import File.FileInfo;
-import Server.Peer;
+import channel.Channel;
+import file.FileInfo;
+import header.Type;
+import server.Peer;
 
 public class Delete extends SubProtocol implements Runnable {
 
     public Delete(String filePath){
         super(filePath);
+        fileId = Peer.getRestorations().get(filePath).fileId;
     }
 
     public void run(){
         FileInfo fileInfo = Peer.getRestorations().get(filePath);
         if(fileInfo == null){
             System.out.println("This file is not backed up in this domain ");
+            return;
         }
 
-        String header = DELETE + " " + Peer.peerId.toString() + " " + fileInfo.fileId + " \r\n\r\n";
+        String header = Channel.createHeader(Type.delete, fileId, -1, -1);
         Peer.sendToChannel(header.getBytes(), Peer.mcChannel);
     }
 }

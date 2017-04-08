@@ -1,4 +1,4 @@
-package Chunks;
+package chunks;
 
 
 public class ChunkInfo {

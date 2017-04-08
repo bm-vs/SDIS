@@ -1,13 +1,14 @@
-package Server;
+package server;
 
-import Channel.*;
+import channel.*;
 
-import Chunks.ChunkId;
-import Chunks.ChunkInfo;
-import File.FileInfo;
-import SubProtocols.Backup;
-import SubProtocols.Restore;
-import SubProtocols.Reclaim;
+import chunks.ChunkId;
+import chunks.ChunkInfo;
+import file.FileInfo;
+import subProtocols.Backup;
+import subProtocols.Delete;
+import subProtocols.Restore;
+import subProtocols.Reclaim;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -26,9 +27,9 @@ public class Peer implements RMIService {
 
 	private static final String INDEXFILE = "index.txt";
 
-    public static MulticastSocket socket;
+    private static MulticastSocket socket;
 
-    static HashMap<ChunkId, ChunkInfo> replies;
+    private static HashMap<ChunkId, ChunkInfo> replies = new HashMap<>();
 
     //TODO
     //saves fileId and thread of the subprotocol process
@@ -37,7 +38,7 @@ public class Peer implements RMIService {
 
     private static HashMap<String, FileInfo> restorations = new HashMap<>();
 
-    public static String remObj;
+    private static String remObj;
 
     public static Channel mcChannel;
     public static Channel mdbChannel;
@@ -56,37 +57,24 @@ public class Peer implements RMIService {
             return;
         } else{
             init(args);
+            loadFile();
         }
         try {
             socket = new MulticastSocket();
         }catch(IOException err){
-            System.err.println(err);
+            err.printStackTrace();
         }
-
-        // Initiate RMI
-        try {
-            Peer peer = new Peer();
-            RMIService stub = (RMIService) UnicastRemoteObject.exportObject(peer, 0);
-            Registry registry = LocateRegistry.getRegistry();
-            registry.rebind(remObj, stub);
-            System.out.println("Peer bound to remote object name: " + remObj);
-        }
-        catch(Exception e) {
-            System.err.println("RMIService exception");
-            e.printStackTrace();
-        }
-		
+        initRMI();
         replies = new HashMap<>();
 
         mcThread = new Thread(mcChannel);
         mdbThread = new Thread(mdbChannel);
         mdrThread = new Thread(mdrChannel);
-
-        System.out.println("Initialized Peer " + args[1]);
-        
         mcThread.start();
         mdbThread.start();
         mdrThread.start();
+        System.out.println("Initialized Peer " + args[1]);
+
     }
 
 
@@ -99,13 +87,27 @@ public class Peer implements RMIService {
         remObj = args[2];
     }
 
+    private static void initRMI(){
+        try {
+            Peer peer = new Peer();
+            RMIService stub = (RMIService) UnicastRemoteObject.exportObject(peer, 0);
+            Registry registry = LocateRegistry.getRegistry();
+            registry.rebind(remObj, stub);
+            System.out.println("Peer bound to remote object name: " + remObj);
+        }
+        catch(Exception e) {
+            System.err.println("RMIService exception");
+            e.printStackTrace();
+        }
+    }
+
     public static void sendToChannel(byte[] message, Channel channel){
 
         DatagramPacket packet = new DatagramPacket(message, message.length, channel.address, channel.port);
         try {
             socket.send(packet);
         }catch(IOException err){
-            System.err.println(err);
+            err.printStackTrace();
         }
     }
 
@@ -136,7 +138,7 @@ public class Peer implements RMIService {
 		saveRepliesToFile();
 	}
 	
-	public static void saveRepliesToFile() {
+	private static void saveRepliesToFile() {
 		BufferedWriter out = null;
 		try {
 			FileWriter fstream = new FileWriter(INDEXFILE);
@@ -159,11 +161,13 @@ public class Peer implements RMIService {
         try {
              buffer = new BufferedReader(new FileReader(INDEXFILE));
         }catch(FileNotFoundException err){
+            err.printStackTrace();
             return;
         }
         String info, fileName;
-        String[] splitInfo;
+        String[] splitInfo, splitName;
         ChunkInfo chunkInfo;
+        ChunkId chunkId;
         do{
             try {
                 fileName = buffer.readLine();
@@ -171,10 +175,15 @@ public class Peer implements RMIService {
 
                 info = buffer.readLine();
                 if(info == null) return;
+                splitName = fileName.split(" ");
                 splitInfo = info.split(" ");
+                chunkId = new ChunkId(splitName[0], Integer.parseInt(splitName[1]));
                 chunkInfo = new ChunkInfo(Integer.parseInt(splitInfo[0]), Integer.parseInt(splitInfo[1]));
+                replies.put(chunkId, chunkInfo);
 
             }catch(IOException err){
+                err.printStackTrace();
+                return;
             }
         }while(true);
     }
@@ -186,7 +195,6 @@ public class Peer implements RMIService {
     public static HashMap<String, FileInfo> getRestorations(){
         return restorations;
     }
-
 
 
     private static void printUsage() {
@@ -213,7 +221,10 @@ public class Peer implements RMIService {
     }
     
     public boolean delete(String file) {
-    	System.out.println("Delete");
+        Delete delete = new Delete(file);
+        Thread t = new Thread(delete);
+        protocols.put("DELETE " + delete.getFileId(), t);
+        t.start();
     	return true;
     }
     

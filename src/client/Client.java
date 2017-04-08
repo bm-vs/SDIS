@@ -1,13 +1,10 @@
-package Client;
+package client;
 
-import SubProtocols.Backup;
-import Server.RMIService;
+import server.RMIService;
 
-import java.io.IOException;
 import java.net.*;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.util.Scanner;
 
 public class Client {
 

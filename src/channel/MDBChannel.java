@@ -1,17 +1,15 @@
-package Channel;
+package channel;
 
-import java.io.IOException;
-import java.io.RandomAccessFile;
+
 import java.net.DatagramPacket;
 import java.util.Random;
 
-import Chunks.ChunkId;
-import Chunks.ChunkInfo;
-import Chunks.ChunkSave;
-import Header.Field;
-import Header.Type;
-import Server.Peer;
-import Server.PeerId;
+import chunks.ChunkId;
+import chunks.ChunkInfo;
+import chunks.ChunkSave;
+import header.Field;
+import header.Type;
+import server.Peer;
 
 public class MDBChannel extends Channel{
 
@@ -47,19 +45,7 @@ public class MDBChannel extends Channel{
         }catch(InterruptedException err){
             err.printStackTrace();
         }
-        answer(fileId, packetHeader[Field.chunkNo]);
-    }
-
-    private void answer(String fileId, String chunkNo){
-        PeerId peerId= Peer.peerId;
-        String message = Type.stored + " " +
-                peerId.version + " " +
-                peerId.id + " " +
-                fileId + " " +
-                chunkNo + " " +
-                Field.cr + Field.lf +
-                Field.cr + Field.lf;
-
-        Peer.sendToChannel(message.getBytes(), Peer.mcChannel);
+        String header = Channel.createHeader(Type.stored, fileId, chunkNo, -1);
+        Peer.sendToChannel(header.getBytes(), Peer.mcChannel);
     }
 }
