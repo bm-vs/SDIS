@@ -16,18 +16,13 @@ public class Backup extends SubProtocol implements Runnable {
 
     private final int SEND_REPEAT = 5;
     private int replDegree;
-    RandomAccessFile in;
-    MulticastSocket socket;
-    InetAddress address;
-    int port;
+    private RandomAccessFile in;
 
-    public Backup(String filePath, int replDegree, MulticastSocket socket, InetAddress address, int port){
+    public Backup(String filePath, int replDegree){
         super(filePath);
         fileId = getFileId(filePath);
         this.replDegree = replDegree;
-        this.socket = socket;
-        this.address = address;
-        this.port = port;
+
         this.filePath = filePath;
         try {
             in = new RandomAccessFile(filePath, "r");
@@ -41,6 +36,7 @@ public class Backup extends SubProtocol implements Runnable {
         int i = 0, repeats, confirmations;
         int numChunks = 0, timeout = 500; //in miliseconds
         byte[] buf, body = new byte[Utils.MAX_BODY];
+        Peer.savePath(filePath, fileId, replDegree);
         do {
             //read bytes from file
             try {
@@ -49,7 +45,6 @@ public class Backup extends SubProtocol implements Runnable {
             } catch (IOException err) {
                 err.printStackTrace();
             }
-
             if(i != Utils.MAX_BODY && i != -1){
                 body = Arrays.copyOfRange(body, 0, i);
             }
@@ -57,7 +52,10 @@ public class Backup extends SubProtocol implements Runnable {
             buf = createPacket(body, numChunks);
             repeats = 0;
             do{
-                repeats++;
+                if(++repeats > Utils.MAX_REPEAT){
+                    System.out.println("Maximum number of tries exceeded. Failed to receive acceptable stored messages at chunk no:" + numChunks);
+                    return;
+                }
                 timeout *= 2;
                 Peer.mcChannel.startStoredCount(fileId, numChunks, replDegree);
                 Peer.sendToChannel(buf, Peer.mdbChannel);
@@ -69,17 +67,17 @@ public class Backup extends SubProtocol implements Runnable {
 
                 confirmations = Peer.mcChannel.getStoredMessages(fileId, numChunks);
 
-            } while(confirmations < replDegree && repeats < SEND_REPEAT);
+            } while(confirmations < replDegree);
             if(confirmations >= replDegree){
                 timeout = 500;
                 System.out.println("Stored chunk " + numChunks + " with acceptable replication degree: " + confirmations);
+                Peer.saveStores(filePath, confirmations);
             } else{
-                System.out.println("No answer");
+                System.out.println("No answer. Repeating chunk:" + numChunks);
             }
         } while(i == Utils.MAX_BODY);
 
         System.out.println("Backup completed");
-        Peer.savePath(filePath, fileId, numChunks);
     }
 
     private byte[] createPacket(byte[]body, int numChunks){

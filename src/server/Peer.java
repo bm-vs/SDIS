@@ -29,6 +29,7 @@ public class Peer implements RMIService {
 
     private static MulticastSocket socket;
 
+    //stored messages received by peers that have the corresponding chunk
     private static HashMap<ChunkId, ChunkInfo> replies = new HashMap<>();
 
     //TODO
@@ -36,6 +37,7 @@ public class Peer implements RMIService {
     //when creating thread puts it into this hashmap
     private static HashMap<String, Thread> protocols = new HashMap<>();
 
+    //saves files that have been backed up from this peer
     private static HashMap<String, FileInfo> restorations = new HashMap<>();
 
     private static String remObj;
@@ -139,7 +141,7 @@ public class Peer implements RMIService {
 	}
 	
 	private static void saveRepliesToFile() {
-		BufferedWriter out = null;
+		BufferedWriter out;
 		try {
 			FileWriter fstream = new FileWriter(INDEXFILE);
 			out = new BufferedWriter(fstream);
@@ -161,7 +163,6 @@ public class Peer implements RMIService {
         try {
              buffer = new BufferedReader(new FileReader(INDEXFILE));
         }catch(FileNotFoundException err){
-            err.printStackTrace();
             return;
         }
         String info, fileName;
@@ -188,8 +189,14 @@ public class Peer implements RMIService {
         }while(true);
     }
 
-    public static void savePath(String filePath, String fileId, int totalChunks){
-        restorations.put(filePath, new FileInfo(fileId, totalChunks));
+    public static void savePath(String filePath, String fileId, int replications){
+        restorations.put(filePath, new FileInfo(fileId, replications));
+    }
+
+    public static void saveStores(String filePath, int repliesReceived){
+        FileInfo info = restorations.get(filePath);
+        info.storeReplication(repliesReceived);
+        restorations.put(filePath, info);
     }
 
     public static HashMap<String, FileInfo> getRestorations(){
@@ -205,7 +212,7 @@ public class Peer implements RMIService {
     //TODO
     //is it useful to add threads to hashmap since you cannot interrupt sleep during backup?
     public boolean backup(String file, int replDegree) {
-        Backup backup = new Backup(file, replDegree, socket, mdbChannel.address, mdbChannel.port);
+        Backup backup = new Backup(file, replDegree);
         Thread t = new Thread(backup);
         protocols.put("BACKUP " + backup.getFileId(), t);
         t.start();
@@ -234,5 +241,18 @@ public class Peer implements RMIService {
     	protocols.put("RECLAIM " + reclaim.getFileId(), t);
         t.start();
     	return true;
+    }
+
+    public boolean space(int space){
+        return true;
+    }
+
+    public String state(){
+        String state = "Files backed up from this peer:\n";
+        for(HashMap.Entry<String, FileInfo> info: restorations.entrySet()){
+            state += "FilePath: " + info.getKey() + "\n";
+            state += info.getValue();
+        }
+        return state;
     }
 }

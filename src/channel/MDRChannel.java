@@ -17,15 +17,15 @@ public class MDRChannel extends Channel {
         super(port, address);
     }
 
-    public void handle(DatagramPacket packet){
-        super.handle(packet);
-        if(Integer.parseInt(packetHeader[Field.senderId]) == Peer.peerId.id)
-            return;
+    public boolean handle(DatagramPacket packet){
+        if(!super.handle(packet))
+            return false;
         String type = packetHeader[Field.type];
         switch (type){
             case Type.chunk:
                 handleCHUNK(packetHeader, packetBody);
         }
+        return true;
     }
 
     private void handleCHUNK(String[] packetHeader, byte[]body){

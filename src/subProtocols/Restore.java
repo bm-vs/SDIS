@@ -19,7 +19,7 @@ public class Restore extends SubProtocol implements Runnable{
             return;
         }
         int i = 1;
-        while (i <= fileInfo.totalChunks) {
+        while (i <= fileInfo.chunksReplicated.size()) {
             String header = Channel.createHeader(Type.getchunk, fileInfo.fileId, i, -1);
             Peer.sendToChannel(header.getBytes(), Peer.mcChannel);
             try {

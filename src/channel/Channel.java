@@ -2,7 +2,6 @@ package channel;
 
 import header.Field;
 import server.Peer;
-import utils.Utils;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -46,13 +45,14 @@ public class Channel implements Runnable {
         }
     }
 
-    public void handle(DatagramPacket packet) {
+    boolean handle(DatagramPacket packet) {
         byte[] raw = Arrays.copyOfRange(packet.getData(), 0, packet.getLength());
         String pac = new String(raw);
         String[] packetData = pac.split(Field.crlf+Field.crlf, 2);
         packetHeader = packetData[0].split("\\s+");
         int headerLength = packetData[0].length() + Field.crlf.length() + Field.crlf.length();
         packetBody = Arrays.copyOfRange(raw, headerLength, raw.length);
+        return Integer.parseInt(packetHeader[Field.senderId]) != Peer.peerId.id;
     }
 
     public void startStoredCount(String fileId, int chunkNo, int replDegree) {

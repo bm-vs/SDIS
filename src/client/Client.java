@@ -31,18 +31,24 @@ public class Client {
         	boolean status = false;
         	
         	switch (operation) {
-	            case "BACKUP":
+	            case Service.backup:
 	            	status = peer.backup(op1, op2);
 	                break;
-	            case "RESTORE":
+	            case Service.restore:
 	            	status = peer.restore(op1);
 	                break;
-	            case "DELETE":
+	            case Service.delete:
 	            	status = peer.delete(op1);
 	                break;
 	            case "RECLAIM":
 	            	status = peer.reclaim(Integer.parseInt(op1));
 	                break;
+                case Service.space:
+                    status = peer.space(Integer.parseInt(op1));
+                    break;
+                case Service.state:
+                    System.out.println(peer.state());
+                    break;
         	}
         	
         	if(status) {

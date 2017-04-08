@@ -21,11 +21,9 @@ public class MCChannel extends Channel{
         super(port, address);
     }
 
-    public void handle(DatagramPacket packet){
-        super.handle(packet);
-        if(Integer.parseInt(packetHeader[Field.senderId]) == Peer.peerId.id){
-            return;
-        }
+    public boolean handle(DatagramPacket packet){
+        if(!super.handle(packet))
+            return false;
         switch(packetHeader[Field.type]){
             case Type.stored:
                 storedMessage(packetHeader);
@@ -40,6 +38,7 @@ public class MCChannel extends Channel{
 				removedChunk(packetHeader);
                 break;
         }
+        return true;
     }
 
     public void startStoredCount(String fileId, int chunkNo, int replDegree){
@@ -54,6 +53,7 @@ public class MCChannel extends Channel{
     public int getStoredMessages(String fileId, int chunkNo){
         ChunkId key = new ChunkId(fileId, chunkNo);
         ChunkInfo c = Peer.getChunkInfo(key);
+        Peer.deleteReply(key);
         return c.confirmations;
     }
 

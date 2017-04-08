@@ -8,5 +8,8 @@ public interface RMIService extends Remote {
 	boolean restore(String file) throws RemoteException;
 	boolean delete(String file) throws RemoteException;
 	boolean reclaim(int space) throws RemoteException;
+	boolean space(int space) throws RemoteException;
+	String state() throws RemoteException;
+
 
 }

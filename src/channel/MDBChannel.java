@@ -2,14 +2,10 @@ package channel;
 
 
 import java.net.DatagramPacket;
-import java.util.Random;
 
-import chunks.ChunkId;
-import chunks.ChunkInfo;
 import chunks.ChunkSave;
 import header.Field;
 import header.Type;
-import server.Peer;
 
 public class MDBChannel extends Channel{
 
@@ -17,15 +13,15 @@ public class MDBChannel extends Channel{
         super(port, address);
     }
 
-    public void handle(DatagramPacket packet){
-        super.handle(packet);
-        if(Integer.parseInt(packetHeader[Field.senderId]) == Peer.peerId.id)
-            return;
+    public boolean handle(DatagramPacket packet){
+        if(!super.handle(packet))
+            return false;
         String type = packetHeader[Field.type];
         switch (type){
             case Type.putchunk:
                 handlePUTCHUNK(packetHeader, packetBody);
         }
+        return true;
     }
 
     private void handlePUTCHUNK(String[] packetHeader, byte[] body){

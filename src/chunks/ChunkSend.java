@@ -1,12 +1,13 @@
 package chunks;
 
 
+import channel.Channel;
+import header.Type;
 import server.Peer;
 import utils.Utils;
 
 import java.io.*;
 import java.util.Arrays;
-import java.util.Random;
 
 public class ChunkSend implements Runnable {
     private String fileId;
@@ -38,7 +39,7 @@ public class ChunkSend implements Runnable {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         try{
             byte[] body = readChunk(fileName);
-            String header = "CHUNK " + Peer.peerId.toString() + " " + fileId + " " + chunkNo + " \r\n\r\n";
+            String header = Channel.createHeader(Type.chunk, fileId, chunkNo, -1);
             byte[] headerArray = header.getBytes();
             outputStream.write(headerArray);
             outputStream.write(body);
