@@ -5,23 +5,34 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.net.DatagramPacket;
+import java.util.Arrays;
 import java.util.Random;
 
+import channel.Channel;
+import header.Type;
 import server.Peer;
+import utils.Utils;
 
 public class ChunkReclaim implements Runnable {
-	String fileId;
-    int chunkNo;
+	String filePath;
+    int replication;
 	private final int SEND_REPEAT = 5;
 	ChunkId id;
-	ChunkInfo info;
-    RandomAccessFile in;
+    private boolean original;
     byte[] body = new byte[64000];
     final String storageFolder = "storage";
     
 	public ChunkReclaim(ChunkId id, ChunkInfo info) {
         this.id = id;
-        this.info = info;
+        this.replication = info.replDegree;
+        this.original = false;
+    }
+
+    public ChunkReclaim(ChunkId id, int replDegree, String filePath) {
+        this.id = id;
+        this.replication = replDegree;
+        this.filePath = filePath;
+        this.original = true;
     }
 	
 	public void run() {
@@ -34,19 +45,34 @@ public class ChunkReclaim implements Runnable {
         	// if putchunk received end thread
             return;
         }
+
+        System.out.println("Started backup following removal of chunks by a connected peer");
         
         try {
-            String fileName = storageFolder + "/" + id.getFileId() + " " + id.getChunkNo();
-            File file = new File(fileName);
-            if(!file.exists()){
-                return;
+            String fileName;
+            if(original){
+                fileName = filePath;
+            }else {
+                fileName = storageFolder + "/" + id.getFileId() + "/" + id.getChunkNo();
+                File file = new File(fileName);
+                if (!file.exists()) {
+                    return;
+                }
             }
+            int i;
             RandomAccessFile r = new RandomAccessFile(fileName, "r");
-            r.read(body);
+            if(original)
+                r.seek((id.getChunkNo()-1)*Utils.MAX_BODY);
+
+            i = r.read(body);
             r.close();
 
+            if(i != Utils.MAX_BODY && i != -1){
+                body = Arrays.copyOfRange(body, 0, i);
+            }
+
             //send through mdbChannel
-            String header = "PUTCHUNK " + Peer.peerId.toString() + " " + id.getFileId() + " " + id.getChunkNo() + info.replDegree + " \r\n\r\n";
+            String header = Channel.createHeader(Type.putchunk, id.getFileId(), id.getChunkNo(), replication);
 
             byte[] headerArray = header.getBytes();
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -65,7 +91,7 @@ public class ChunkReclaim implements Runnable {
                 repeats++;
                 timeout *= 2;
                 try {
-                    Peer.mcChannel.startStoredCount(id.getFileId(), id.getChunkNo(), info.replDegree);
+                    Peer.mcChannel.startStoredCount(id.getFileId(), id.getChunkNo(), replication);
                     Peer.socket.send(packet);
                     try {
                         Thread.sleep(timeout);
@@ -77,9 +103,9 @@ public class ChunkReclaim implements Runnable {
                 }
                 confirmations = Peer.mcChannel.getStoredMessages(id.getFileId(), id.getChunkNo());
 
-            } while(confirmations < info.replDegree && repeats < SEND_REPEAT);
+            } while(confirmations < replication && repeats < SEND_REPEAT);
             
-            if(confirmations >= info.replDegree){
+            if(confirmations >= replication){
                 System.out.println("Stored chunk with acceptable replication degree");
             } else{
                 System.out.println("No answer");

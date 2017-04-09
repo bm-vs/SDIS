@@ -33,6 +33,7 @@ public class Backup extends SubProtocol implements Runnable {
 
     public void run(){
 
+        System.out.println("Backup initiated");
         int i = 0, repeats, confirmations;
         int numChunks = 0, timeout = 500; //in miliseconds
         byte[] buf, body = new byte[Utils.MAX_BODY];

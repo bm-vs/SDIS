@@ -17,6 +17,18 @@ public class FileInfo {
         chunksReplicated.add(storesReceived);
     }
 
+    public void removedReplication(int chunkNo){
+        chunksReplicated.set(chunkNo, chunksReplicated.get(chunkNo)-1);
+    }
+
+    public boolean acceptableeplications(int chunkNo){
+        return chunksReplicated.get(chunkNo) >= desiredReplication;
+    }
+
+    public int getDesiredReplication(){
+        return desiredReplication;
+    }
+
     @Override
     public String toString(){
         String header = "FileId: " + fileId +

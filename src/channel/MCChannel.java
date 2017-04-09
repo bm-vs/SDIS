@@ -91,7 +91,15 @@ public class MCChannel extends Channel{
         		t.run();
         	}   		
     	}else if((key = Utils.getKeysByValue(Peer.getRestorations(), fileInfo)) != null){
-            Set<String> f = key;
+            for (String filePath : key){
+                fileInfo = Peer.getRestorations().get(filePath);
+                fileInfo.removedReplication(chunkNo-1);
+                if(!fileInfo.acceptableeplications(chunkNo-1)){
+                    Thread t = new Thread(new ChunkReclaim(id, fileInfo.getDesiredReplication(), filePath));
+                    //Peer.addProtocol("CHUNKBACKUP", fileId + " " + chunkNo, t);
+                    t.start();
+                }
+            }
         }
     }
 }

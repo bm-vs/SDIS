@@ -238,10 +238,10 @@ public class Peer implements RMIService {
     }
     
     public boolean reclaim(int space) {
-    	Reclaim reclaim = new Reclaim(space);
-    	Thread t = new Thread(reclaim);
-    	protocols.put("RECLAIM " + reclaim.getFileId(), t);
-        t.start();
+    	//Reclaim reclaim = new Reclaim(space);
+    	//Thread t = new Thread(reclaim);
+    	//protocols.put("RECLAIM " + reclaim.getFileId(), t);
+        //t.start();
     	return true;
     }
 
