@@ -7,7 +7,7 @@ import java.io.File;
 
 public class Disk {
 
-    public static int maxSpace = 64000000;
+    private static int maxSpace = 64000000;
     public static int usedSpace;
 
     public static int getAvailableSpace(){

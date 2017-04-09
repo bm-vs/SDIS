@@ -1,6 +1,8 @@
 package utils;
 
 
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.HashMap;
 import java.util.Objects;
 import java.util.Random;
@@ -20,6 +22,17 @@ public class Utils {
             Thread.sleep(rnd.nextInt(MAX_WAIT_TIME));
         }catch(InterruptedException err){
             err.printStackTrace();
+        }
+    }
+
+    public static boolean correctBackup(String filename, int chunks){
+        try{
+            RandomAccessFile in = new RandomAccessFile(filename, "r");
+            int size = (int)in.length();
+            int totalChunks = size / 64000;
+            return (totalChunks + 1) == chunks;
+        }catch (IOException err){
+            return true;
         }
     }
 

@@ -6,10 +6,12 @@ import chunks.ChunkId;
 import chunks.ChunkInfo;
 import file.Disk;
 import file.FileInfo;
+import org.omg.CORBA.INTERNAL;
 import subProtocols.Backup;
 import subProtocols.Delete;
 import subProtocols.Restore;
 import subProtocols.Reclaim;
+import utils.Utils;
 
 import java.io.*;
 import java.net.DatagramPacket;
@@ -54,19 +56,19 @@ public class Peer implements RMIService {
         Disk.analyzeUsedSpace();
         System.out.println("Storage space is: " + Disk.usedSpace);
 
-        if(args.length != 9){
-            printUsage();
-            return;
-        } else{
-            init(args);
-            loadFile();
-            loadInitiator();
-        }
         try {
             socket = new MulticastSocket();
         }catch(IOException err){
             err.printStackTrace();
         }
+
+        if(args.length != 9){
+            printUsage();
+            return;
+        } else{
+            init(args);
+        }
+
         initRMI();
         replies = new HashMap<>();
 
@@ -76,6 +78,8 @@ public class Peer implements RMIService {
         mcThread.start();
         mdbThread.start();
         mdrThread.start();
+        loadFile();
+        loadInitiator();
         System.out.println("Initialized Peer " + args[1]);
 
     }
@@ -127,11 +131,11 @@ public class Peer implements RMIService {
         return replies;
     }
 
-    public static ChunkInfo getChunkInfo(ChunkId id) {
+    public synchronized static ChunkInfo getChunkInfo(ChunkId id) {
         return replies.get(id);
     }
 
-    public static void addReply(ChunkId id, ChunkInfo info) {
+    public synchronized static void addReply(ChunkId id, ChunkInfo info) {
         replies.put(id, info);
         saveRepliesToFile();
     }
@@ -202,12 +206,23 @@ public class Peer implements RMIService {
                 replications = Integer.parseInt(info);
                 FileInfo fileInfo = new FileInfo(fileId, replications);
                 info = buffer.readLine();
-                splitInfo = info.split(" ");
-                for (String str : splitInfo) {
-                    fileInfo.storeReplication(Integer.parseInt(str));
-                }
+                if(info.isEmpty()){
+                    if(peerId.version.equals("1.1")){
+                        new Thread(new Backup(fileName, replications)).start();
+                    }
+                } else {
 
-                restorations.put(fileName, fileInfo);
+                    splitInfo = info.split(" ");
+
+                    for (String str : splitInfo) {
+                        fileInfo.storeReplication(Integer.parseInt(str));
+                    }
+                    restorations.put(fileName, fileInfo);
+
+                    if(!Utils.correctBackup(fileName, splitInfo.length)){
+                        new Thread(new Backup(fileName, replications, fileId, splitInfo.length)).start();
+                    }
+                }
 
             }catch(IOException err){
                 err.printStackTrace();

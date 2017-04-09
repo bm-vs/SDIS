@@ -26,7 +26,7 @@ public class Client {
         // Start RMI
         try {
             Registry registry = LocateRegistry.getRegistry("localhost");
-        	RMIService peer = (RMIService) registry.lookup(args[0]);
+        	RMIService peer = (RMIService) registry.lookup(access);
 
         	boolean status = false;
         	

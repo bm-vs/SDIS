@@ -1,43 +1,61 @@
 package subProtocols;
 
 import channel.Channel;
+import file.FileInfo;
 import header.Type;
 import server.Peer;
 import utils.Utils;
 
 import java.io.*;
-import java.net.DatagramPacket;
-import java.net.InetAddress;
-import java.net.MulticastSocket;
 import java.security.MessageDigest;
 import java.util.Arrays;
 
 public class Backup extends SubProtocol implements Runnable {
 
-    private final int SEND_REPEAT = 5;
     private int replDegree;
     private RandomAccessFile in;
+    private int numChunks;
 
     public Backup(String filePath, int replDegree){
         super(filePath);
         fileId = getFileId(filePath);
         this.replDegree = replDegree;
-
+        this.numChunks = 0;
         this.filePath = filePath;
+        Peer.deletePath(filePath);
+    }
+
+    public Backup(String filePath, int replDegree, String fileId, int chunks){
+        super(filePath);
+        this.fileId = fileId;
+        this.replDegree = replDegree;
+        this.numChunks = chunks;
+        this.filePath = filePath;
+    }
+
+    public void run(){
+        int i = 0, repeats, confirmations;
+        int timeout = 500; //in miliseconds
+        byte[] buf, body = new byte[Utils.MAX_BODY];
         try {
             in = new RandomAccessFile(filePath, "r");
         } catch (IOException err){
             System.err.println("File not found");
+            return;
         }
-    }
-
-    public void run(){
 
         System.out.println("Backup initiated");
-        int i = 0, repeats, confirmations;
-        int numChunks = 0, timeout = 500; //in miliseconds
-        byte[] buf, body = new byte[Utils.MAX_BODY];
-        Peer.savePath(filePath, fileId, replDegree);
+        if(numChunks != 0){
+            System.out.println("Continuing backup from system failure. Proceeding from chunk no: " + numChunks);
+            try {
+                in.seek(Utils.MAX_BODY * numChunks);
+            }catch(IOException err){
+                err.printStackTrace();
+            }
+        }
+
+        if(Peer.getRestorations().get(filePath) == null)
+            Peer.savePath(filePath, fileId, replDegree);
         do {
             //read bytes from file
             try {
@@ -51,10 +69,12 @@ public class Backup extends SubProtocol implements Runnable {
             }
 
             buf = createPacket(body, numChunks);
-            repeats = 0;
+            repeats = 1;
             do{
+                System.out.println("Sending chunk no: " + numChunks + ". Try no: " + repeats);
                 if(++repeats > Utils.MAX_REPEAT){
-                    System.out.println("Maximum number of tries exceeded. Failed to receive acceptable stored messages at chunk no:" + numChunks);
+                    System.out.println("Maximum number of tries exceeded. Failed to receive acceptable stored messages at chunk no: " + numChunks);
+                    Peer.deletePath(filePath);
                     return;
                 }
                 timeout *= 2;

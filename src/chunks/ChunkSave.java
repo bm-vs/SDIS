@@ -54,7 +54,7 @@ public class ChunkSave implements Runnable {
             Peer.addReply(chunkId, new ChunkInfo(replication, stores + 1));
             String header = Channel.createHeader(Type.stored, fileId, chunkNo, -1);
             Peer.sendToChannel(header.getBytes(), Peer.mcChannel);
-            System.out.println("Creted backup for fileId: " + fileId + " and chunkNo: " + chunkNo);
+            System.out.println("Created backup for fileId: " + fileId + " and chunkNo: " + chunkNo);
         }catch(IOException err){
             err.printStackTrace();
         }

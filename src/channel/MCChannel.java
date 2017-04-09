@@ -44,7 +44,7 @@ public class MCChannel extends Channel{
         return true;
     }
 
-    public void startStoredCount(String fileId, int chunkNo, int replDegree){
+    public synchronized void  startStoredCount(String fileId, int chunkNo, int replDegree){
         ChunkId key = new ChunkId(fileId, chunkNo);
         ChunkInfo value = new ChunkInfo(replDegree);
 		
@@ -53,14 +53,14 @@ public class MCChannel extends Channel{
         }
     }
 
-    public int getStoredMessages(String fileId, int chunkNo){
+    public synchronized int getStoredMessages(String fileId, int chunkNo){
         ChunkId key = new ChunkId(fileId, chunkNo);
         ChunkInfo c = Peer.getChunkInfo(key);
         Peer.deleteReply(key);
         return c.confirmations;
     }
 
-    public void storedMessage(String[] args){
+    public synchronized void storedMessage(String[] args){
         String fileId = args[3];
         int chunkNo = Integer.parseInt(args[4]);
         ChunkId id = new ChunkId(fileId, chunkNo);
