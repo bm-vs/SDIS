@@ -13,27 +13,30 @@ import server.Peer;
 import utils.Utils;
 
 public class Reclaim extends SubProtocol implements Runnable {
-	private int space;
+	private int spaceToRemove;
 	
-	public Reclaim(){
+	public Reclaim(int space){
 		super("");
+		this.spaceToRemove = space;
 	}
 	
 	public void run(){
 		Iterator<Entry<ChunkId, ChunkInfo>> it = Peer.getReplies().entrySet().iterator();
 		boolean remove_all = false;
-		
-		do {
+		int space_removed = 0;
+
+        // Remove while space removed < space to reclaim or there's nothing else to remove
+        while (space_removed < spaceToRemove && Peer.getReplies().size() > 0) {
 			Entry<ChunkId, ChunkInfo> chunk = it.next();
 			
 			if (remove_all || chunk.getValue().replDegree > chunk.getValue().confirmations) {
 				File chunk_file = new File(Utils.storage + "/" + chunk.getKey().getFileId() + "/" + chunk.getKey().getChunkNo());
 
 				// get file size & add to space_removed
-				long space_removed = chunk_file.length();
+				space_removed += (int)chunk_file.length();
 				
 				// send removed
-				String header = Channel.createHeader(Type.removed, fileId, chunk.getKey().getChunkNo(), -1);
+				String header = Channel.createHeader(Type.removed, chunk.getKey().getFileId(), chunk.getKey().getChunkNo(), -1);
 				Peer.sendToChannel(header.getBytes(), Peer.mcChannel);
 				
 				// remove chunk file from file system
@@ -53,8 +56,7 @@ public class Reclaim extends SubProtocol implements Runnable {
 				it = Peer.getReplies().entrySet().iterator();
 				remove_all = true;
 			}
-		} while (Disk.getAvailableSpace() < 0 && Peer.getReplies().size() > 0);
-		// Remove while space removed < space to reclaim or there's nothing else to remove
+		}
 	}
 
 }

@@ -35,7 +35,7 @@ public class ChunkSave implements Runnable {
             Disk.occupy(body.length);
 
             if(Disk.getAvailableSpace() < 0){
-                new Thread(new Reclaim()).start();
+                new Thread(new Reclaim(Disk.getAvailableSpace() * -1)).start();
             }
 
             //create entry in hashmap of replies

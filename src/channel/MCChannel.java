@@ -76,7 +76,7 @@ public class MCChannel extends Channel{
     	String fileId = args[Field.fileId];
     	int chunkNo = Integer.parseInt(args[Field.chunkNo]);
 
-        
+
     	ChunkId id = new ChunkId(fileId, chunkNo);
     	ChunkInfo info;
     	Set<String> key;

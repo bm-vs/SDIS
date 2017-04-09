@@ -40,7 +40,7 @@ public class Client {
 	            case Service.delete:
 	            	status = peer.delete(op1);
 	                break;
-	            case "RECLAIM":
+	            case Service.reclaim:
 	            	status = peer.reclaim(Integer.parseInt(op1));
 	                break;
                 case Service.space:
