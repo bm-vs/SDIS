@@ -32,7 +32,7 @@ public class MCChannel extends Channel{
                 storedMessage(packetHeader);
                 break;
             case Type.getchunk:
-                new Thread(new ChunkSend(packetHeader[Field.fileId], Integer.parseInt(packetHeader[Field.chunkNo]))).start();
+            	new Thread(new ChunkSend(packetHeader[Field.senderId], packetHeader[Field.fileId], Integer.parseInt(packetHeader[Field.chunkNo]))).start();
                 break;
             case Type.delete:
                 new Thread(new ChunkDelete(packetHeader[Field.fileId])).start();
