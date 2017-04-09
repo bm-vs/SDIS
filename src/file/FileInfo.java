@@ -21,7 +21,7 @@ public class FileInfo {
         chunksReplicated.set(chunkNo, chunksReplicated.get(chunkNo)-1);
     }
 
-    public boolean acceptableeplications(int chunkNo){
+    public boolean acceptableReplications(int chunkNo){
         return chunksReplicated.get(chunkNo) >= desiredReplication;
     }
 

@@ -20,8 +20,7 @@ public class ChunkReclaim implements Runnable {
 	ChunkId id;
     private boolean original;
     byte[] body = new byte[64000];
-    final String storageFolder = "storage";
-    
+
 	public ChunkReclaim(ChunkId id, ChunkInfo info) {
         this.id = id;
         this.replication = info.replDegree;
@@ -53,7 +52,7 @@ public class ChunkReclaim implements Runnable {
             if(original){
                 fileName = filePath;
             }else {
-                fileName = storageFolder + "/" + id.getFileId() + "/" + id.getChunkNo();
+                fileName = Utils.storage + "/" + id.getFileId() + "/" + id.getChunkNo();
                 File file = new File(fileName);
                 if (!file.exists()) {
                     return;

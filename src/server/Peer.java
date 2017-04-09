@@ -17,11 +17,12 @@ import java.net.MulticastSocket;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Peer implements RMIService {
 
-	private static final String INDEXFILE = "index.txt";
+    private static final String INDEXFILE = "index.txt";
 
     public static MulticastSocket socket;
 
@@ -59,6 +60,7 @@ public class Peer implements RMIService {
         } else{
             init(args);
             loadFile();
+            loadInitiator();
         }
         try {
             socket = new MulticastSocket();
@@ -120,47 +122,104 @@ public class Peer implements RMIService {
     public static boolean threadExists(String key){
         return protocols.get(key) != null;
     }
-    
+
     public static HashMap<ChunkId, ChunkInfo> getReplies() {
-		return replies;
-	}
+        return replies;
+    }
 
-	public static ChunkInfo getChunkInfo(ChunkId id) {
-		return replies.get(id);
-	}
+    public static ChunkInfo getChunkInfo(ChunkId id) {
+        return replies.get(id);
+    }
 
-	public static void addReply(ChunkId id, ChunkInfo info) {
-		replies.put(id, info);
-		saveRepliesToFile();
-	}
-	
-	public static void deleteReply(ChunkId id) {
-		replies.remove(id);
-		saveRepliesToFile();
-	}
-	
-	private static void saveRepliesToFile() {
-		BufferedWriter out;
-		try {
-			FileWriter fstream = new FileWriter(INDEXFILE);
-			out = new BufferedWriter(fstream);
-			
-			for (ChunkId key: replies.keySet()) {
-				out.write(key.getFileId() + " " + ((Integer) key.getChunkNo()).toString() + "\n");
-				out.write(replies.get(key).replDegree + " " + replies.get(key).confirmations + "\n");
-			}
+    public static void addReply(ChunkId id, ChunkInfo info) {
+        replies.put(id, info);
+        saveRepliesToFile();
+    }
 
-			out.close();
-		}
-		catch (IOException e) {
-			System.err.println("Error: " + e.getMessage());
-		}
-	}
+    public static void deleteReply(ChunkId id) {
+        replies.remove(id);
+        saveRepliesToFile();
+    }
+
+    private static void saveRepliesToFile() {
+        BufferedWriter out;
+        try {
+            FileWriter fstream = new FileWriter(INDEXFILE);
+            out = new BufferedWriter(fstream);
+
+            for (ChunkId key: replies.keySet()) {
+                out.write(key.getFileId() + " " + ((Integer) key.getChunkNo()).toString() + "\n");
+                out.write(replies.get(key).replDegree + " " + replies.get(key).confirmations + "\n");
+            }
+
+            out.close();
+        }
+        catch (IOException e) {
+            System.err.println("Error: " + e.getMessage());
+        }
+    }
+
+    private static void saveInitiator(){
+        BufferedWriter out;
+        try {
+            FileWriter fstream = new FileWriter("initiator.txt");
+            out = new BufferedWriter(fstream);
+
+            for (String key: restorations.keySet()) {
+                FileInfo fileInfo = restorations.get(key);
+                out.write(key + "\n" + fileInfo.fileId + "\n" + fileInfo.getDesiredReplication() + "\n");
+                for (int replications:fileInfo.chunksReplicated) {
+                    out.write(replications + " ");
+                }
+                out.newLine();
+            }
+
+            out.close();
+        }
+        catch (IOException e) {
+            System.err.println("Error: " + e.getMessage());
+        }
+    }
+
+    private static void loadInitiator(){
+        BufferedReader buffer;
+        try {
+            buffer = new BufferedReader(new FileReader("initiator.txt"));
+        }catch(FileNotFoundException err){
+            return;
+        }
+        String info, fileName, fileId;
+        String[] splitInfo;
+        int replications;
+        do{
+            try {
+                fileName = buffer.readLine();
+                if (fileName == null) return;
+
+                fileId = buffer.readLine();
+
+                info = buffer.readLine();
+                replications = Integer.parseInt(info);
+                FileInfo fileInfo = new FileInfo(fileId, replications);
+                info = buffer.readLine();
+                splitInfo = info.split(" ");
+                for (String str : splitInfo) {
+                    fileInfo.storeReplication(Integer.parseInt(str));
+                }
+
+                restorations.put(fileName, fileInfo);
+
+            }catch(IOException err){
+                err.printStackTrace();
+                return;
+            }
+        }while(true);
+    }
 
     private static void loadFile(){
         BufferedReader buffer;
         try {
-             buffer = new BufferedReader(new FileReader(INDEXFILE));
+            buffer = new BufferedReader(new FileReader(INDEXFILE));
         }catch(FileNotFoundException err){
             return;
         }
@@ -190,12 +249,19 @@ public class Peer implements RMIService {
 
     public static void savePath(String filePath, String fileId, int replications){
         restorations.put(filePath, new FileInfo(fileId, replications));
+        saveInitiator();
+    }
+
+    public static void deletePath(String filePath){
+        restorations.remove(filePath);
+        saveInitiator();
     }
 
     public static void saveStores(String filePath, int repliesReceived){
         FileInfo info = restorations.get(filePath);
         info.storeReplication(repliesReceived);
         restorations.put(filePath, info);
+        saveInitiator();
     }
 
     public static HashMap<String, FileInfo> getRestorations(){
@@ -203,9 +269,9 @@ public class Peer implements RMIService {
     }
 
     public static void addProtocol(String name, String identifier, Thread t) {
-    	protocols.put(name + " " + identifier, t);
+        protocols.put(name + " " + identifier, t);
     }
-    
+
     private static void printUsage() {
         System.out.println("Wrong number of arguments");
         System.out.println("Usage: java Server.Peer version id RmiName mcAddress mcPort mdbAddress mdbPort mdrAddress mdrPort");
@@ -218,9 +284,9 @@ public class Peer implements RMIService {
         Thread t = new Thread(backup);
         protocols.put("BACKUP " + backup.getFileId(), t);
         t.start();
-    	return true;
+        return true;
     }
-    
+
     public boolean restore(String file) {
         Restore restore = new Restore(file);
         Thread t = new Thread(restore);
@@ -228,21 +294,21 @@ public class Peer implements RMIService {
         t.start();
         return true;
     }
-    
+
     public boolean delete(String file) {
         Delete delete = new Delete(file);
         Thread t = new Thread(delete);
         protocols.put("DELETE " + delete.getFileId(), t);
         t.start();
-    	return true;
+        return true;
     }
-    
+
     public boolean reclaim(int space) {
-    	//Reclaim reclaim = new Reclaim(space);
-    	//Thread t = new Thread(reclaim);
-    	//protocols.put("RECLAIM " + reclaim.getFileId(), t);
+        //Reclaim reclaim = new Reclaim(space);
+        //Thread t = new Thread(reclaim);
+        //protocols.put("RECLAIM " + reclaim.getFileId(), t);
         //t.start();
-    	return true;
+        return true;
     }
 
     public boolean space(int space){

@@ -15,7 +15,7 @@ public class Client {
 
     public static void main(String[] args) throws UnknownHostException {
         if (!checkArguments(args)) {
-            System.out.println("Error: Invalid action");
+            printUsage();
             return;
         }
 
@@ -61,35 +61,30 @@ public class Client {
     }
 
     private static boolean checkArguments(String[] args) {
-        switch(args.length) {
-            case 4:
-                access = args[0];
-                operation = args[1];
-                if (operation.equals("BACKUP")) {
-                    op1 = args[2];
+        if(args.length >= 2 && args.length <= 4) {
+            access = args[0];
+            operation = args[1];
+            if (args.length >= 3) {
+                op1 = args[2];
+                if (args.length == 4) {
                     op2 = Integer.parseInt(args[3]);
-                    return true;
+                    return operation.equals(Service.backup);
+                } else{
+                    return operation.equals(Service.delete) || operation.equals(Service.reclaim) || operation.equals(Service.restore) || operation.equals(Service.space);
                 }
-                return true;
-            case 3:
-                access = args[0];
-                operation = args[1];
-                if (operation.equals("RESTORE") || operation.equals("DELETE") || operation.equals("RECLAIM")) {
-                    op1 = args[2];
-                    return true;
-                }
-                return false;
-            case 2:
-                access = args[0];
-                operation = args[1];
-                if (operation.equals("STATE")) {
-                    return true;
-                }
-                return false;
-            default:
-                return false;
-        }
+            } else return operation.equals(Service.state);
+        } else return false;
     }
 
+    private static void printUsage(){
+        System.out.println("Wrong number of arguments for specified operation. Usage:");
+        System.out.println("java client.Client <RMIName> " + Service.backup + " <filePath> <replication degree>");
+        System.out.println("java client.Client <RMIName> " + Service.restore + " <filePath>");
+        System.out.println("java client.Client <RMIName> " + Service.delete + " <filePath>");
+        System.out.println("java client.Client <RMIName> " + Service.reclaim + " <space>");
+        System.out.println("java client.Client <RMIName> " + Service.space + " <space>");
+        System.out.println("java client.Client <RMIName> " + Service.state);
 
+
+    }
 }

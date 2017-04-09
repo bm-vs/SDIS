@@ -28,8 +28,20 @@ public class ChunkSave implements Runnable {
     public void run() {
         try {
             createFolders();
+            int stores = 0;
+            ChunkInfo chunkInfo = new ChunkInfo(replication);
+            ChunkId chunkId = new ChunkId(fileId, chunkNo);
             RandomAccessFile r = new RandomAccessFile(Utils.storage + "/" + fileId + "/" + chunkNo, "rw");
+            Peer.addReply(chunkId, chunkInfo);
             Utils.waitTime();
+            if(Peer.peerId.version.equals("1.1")) {
+                stores = Peer.mcChannel.getStoredMessages(fileId, chunkNo);
+                if(stores >= replication) {
+                    Peer.deleteReply(chunkId);
+                    return;
+                }
+            }
+
             r.write(body);
             r.close();
             Disk.occupy(body.length);
@@ -39,9 +51,10 @@ public class ChunkSave implements Runnable {
             }
 
             //create entry in hashmap of replies
-            Peer.addReply(new ChunkId(fileId, chunkNo), new ChunkInfo(replication, 1));
+            Peer.addReply(chunkId, new ChunkInfo(replication, stores + 1));
             String header = Channel.createHeader(Type.stored, fileId, chunkNo, -1);
             Peer.sendToChannel(header.getBytes(), Peer.mcChannel);
+            System.out.println("Creted backup for fileId: " + fileId + " and chunkNo: " + chunkNo);
         }catch(IOException err){
             err.printStackTrace();
         }

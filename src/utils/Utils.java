@@ -23,6 +23,10 @@ public class Utils {
         }
     }
 
+
+    /**
+     * Taken from https://stackoverflow.com/questions/1383797/java-hashmap-how-to-get-key-from-value
+     */
     public static <T, E> Set<T> getKeysByValue(HashMap<T, E> map, E value) {
         return map.entrySet()
                 .stream()
