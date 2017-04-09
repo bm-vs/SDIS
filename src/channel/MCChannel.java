@@ -6,11 +6,14 @@ import chunks.ChunkId;
 import chunks.ChunkInfo;
 import chunks.ChunkReclaim;
 import chunks.ChunkSend;
+import file.FileInfo;
 import header.Field;
 import header.Type;
 import server.Peer;
+import utils.Utils;
 
 import java.net.DatagramPacket;
+import java.util.Set;
 
 public class MCChannel extends Channel{
 
@@ -70,13 +73,15 @@ public class MCChannel extends Channel{
     }
 	
     public void removedChunk(String[] args) {
-    	String fileId = args[3];
-    	int chunkNo = Integer.parseInt(args[4]);
-    	
+    	String fileId = args[Field.fileId];
+    	int chunkNo = Integer.parseInt(args[Field.chunkNo]);
+
+        
     	ChunkId id = new ChunkId(fileId, chunkNo);
     	ChunkInfo info;
+    	Set<String> key;
+        FileInfo fileInfo = new FileInfo(fileId, 0);
     	if ((info = Peer.getChunkInfo(id)) != null) {
-    		info.confirmations++;
     		info.confirmations--;
     		Peer.addReply(id, info);
     		
@@ -85,6 +90,8 @@ public class MCChannel extends Channel{
         		Peer.addProtocol("CHUNKBACKUP", fileId + " " + chunkNo, t);
         		t.run();
         	}   		
-    	}
+    	}else if((key = Utils.getKeysByValue(Peer.getRestorations(), fileInfo)) != null){
+            Set<String> f = key;
+        }
     }
 }

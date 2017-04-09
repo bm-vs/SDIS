@@ -4,18 +4,14 @@ import channel.*;
 
 import chunks.ChunkId;
 import chunks.ChunkInfo;
+import file.Disk;
 import file.FileInfo;
 import subProtocols.Backup;
 import subProtocols.Delete;
 import subProtocols.Restore;
 import subProtocols.Reclaim;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
 import java.rmi.registry.LocateRegistry;
@@ -53,6 +49,9 @@ public class Peer implements RMIService {
     public static Thread mdrThread;
 
     public static void main(String[] args) {
+
+        Disk.analyzeUsedSpace();
+        System.out.println("Storage space is: " + Disk.usedSpace);
 
         if(args.length != 9){
             printUsage();
@@ -148,7 +147,7 @@ public class Peer implements RMIService {
 			
 			for (ChunkId key: replies.keySet()) {
 				out.write(key.getFileId() + " " + ((Integer) key.getChunkNo()).toString() + "\n");
-				out.write(replies.get(key).replDegree + " " + replies.get(key).confirmations + " " + replies.get(key).size + "\n");
+				out.write(replies.get(key).replDegree + " " + replies.get(key).confirmations + "\n");
 			}
 
 			out.close();
@@ -179,7 +178,7 @@ public class Peer implements RMIService {
                 splitName = fileName.split(" ");
                 splitInfo = info.split(" ");
                 chunkId = new ChunkId(splitName[0], Integer.parseInt(splitName[1]));
-                chunkInfo = new ChunkInfo(Integer.parseInt(splitInfo[0]), Integer.parseInt(splitInfo[1]), Integer.parseInt(splitInfo[2]));
+                chunkInfo = new ChunkInfo(Integer.parseInt(splitInfo[0]), Integer.parseInt(splitInfo[1]));
                 replies.put(chunkId, chunkInfo);
 
             }catch(IOException err){
@@ -247,6 +246,10 @@ public class Peer implements RMIService {
     }
 
     public boolean space(int space){
+        Disk.setMaxSpace(space);
+        if(Disk.getAvailableSpace() < 0){
+
+        }
         return true;
     }
 
@@ -260,6 +263,7 @@ public class Peer implements RMIService {
         state += "\n\nChunks saved in this peer:\n";
         for(HashMap.Entry<ChunkId, ChunkInfo> info: replies.entrySet()){
             state += "FilePath: " + info.getKey() + "\n";
+            state += "Size: " + Disk.getChunkSize(info.getKey()) + "\n";
             state += info.getValue();
         }
         return state;

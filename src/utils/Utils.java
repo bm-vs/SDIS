@@ -1,7 +1,11 @@
 package utils;
 
 
+import java.util.HashMap;
+import java.util.Objects;
 import java.util.Random;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class Utils {
     private static final int MAX_WAIT_TIME = 400;
@@ -17,5 +21,13 @@ public class Utils {
         }catch(InterruptedException err){
             err.printStackTrace();
         }
+    }
+
+    public static <T, E> Set<T> getKeysByValue(HashMap<T, E> map, E value) {
+        return map.entrySet()
+                .stream()
+                .filter(entry -> Objects.equals(entry.getValue(), value))
+                .map(HashMap.Entry::getKey)
+                .collect(Collectors.toSet());
     }
 }

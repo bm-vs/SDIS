@@ -2,8 +2,10 @@ package chunks;
 
 
 import channel.Channel;
+import file.Disk;
 import header.Type;
 import server.Peer;
+import subProtocols.Reclaim;
 import utils.Utils;
 
 import java.io.File;
@@ -27,12 +29,17 @@ public class ChunkSave implements Runnable {
         try {
             createFolders();
             RandomAccessFile r = new RandomAccessFile(Utils.storage + "/" + fileId + "/" + chunkNo, "rw");
+            Utils.waitTime();
             r.write(body);
             r.close();
-            Utils.waitTime();
+            Disk.occupy(body.length);
+
+            if(Disk.getAvailableSpace() < 0){
+                new Thread(new Reclaim()).start();
+            }
 
             //create entry in hashmap of replies
-            Peer.addReply(new ChunkId(fileId, chunkNo), new ChunkInfo(replication, 1, body.length));
+            Peer.addReply(new ChunkId(fileId, chunkNo), new ChunkInfo(replication, 1));
             String header = Channel.createHeader(Type.stored, fileId, chunkNo, -1);
             Peer.sendToChannel(header.getBytes(), Peer.mcChannel);
         }catch(IOException err){

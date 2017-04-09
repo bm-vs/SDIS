@@ -1,5 +1,6 @@
 package chunks;
 
+import file.Disk;
 import server.Peer;
 import utils.Utils;
 
@@ -18,7 +19,9 @@ public class ChunkDelete implements Runnable {
         if(folder.isDirectory()){
             String[] chunks = folder.list();
             for (int i = 0; i < chunks.length; i++) {
-                new File(folderName + "/" + chunks[i]).delete();
+                File file = new File(folderName + "/" + chunks[i]);
+                Disk.free(file.length());
+                file.delete();
                 Peer.deleteReply(new ChunkId(fileId, i));
             }
             folder.delete();
