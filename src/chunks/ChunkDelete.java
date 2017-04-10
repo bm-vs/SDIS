@@ -20,9 +20,9 @@ public class ChunkDelete implements Runnable {
             String[] chunks = folder.list();
             for (int i = 0; i < chunks.length; i++) {
                 File file = new File(folderName + "/" + chunks[i]);
-                Disk.free(file.length());
+                Disk.free((int)file.length());
                 file.delete();
-                Peer.deleteReply(new ChunkId(fileId, i));
+                Peer.deleteReply(new ChunkId(fileId, Integer.parseInt(chunks[i])));
             }
             folder.delete();
         }

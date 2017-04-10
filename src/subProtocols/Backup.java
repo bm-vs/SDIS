@@ -37,7 +37,10 @@ public class Backup extends SubProtocol implements Runnable {
         int i, confirmations;
         byte[] buf, body;
 
-        if(!openFile()) return;
+        if(!openFile()){
+            Peer.deleteProtocol(Service.backup, fileId);
+            return;
+        }
         System.out.println("Backup initiated");
         continuation();
         if(Peer.getRestorations().get(filePath) == null)

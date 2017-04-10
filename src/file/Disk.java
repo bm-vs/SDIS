@@ -69,10 +69,10 @@ public class Disk {
     }
 
     public static void occupy(int size){
-        usedSpace -= size;
+        usedSpace += size;
     }
 
-    public static void free(long size){
-        usedSpace += (int)size;
+    public static void free(int size){
+        usedSpace -= size;
     }
 }
