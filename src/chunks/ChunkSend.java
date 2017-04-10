@@ -35,7 +35,7 @@ public class ChunkSend implements Runnable {
             return;
         }
         
-        if (Peer.peerId.version.equals("1.1")) {
+        if (Peer.peerId.version.equals(Utils.RESTORE_ENHANCE) || Peer.peerId.version.equals(Utils.ALL_ENHANCE)) {
         	Socket privateSocket;
         	try {
         		privateSocket = new Socket("127.0.0.1", 2220+Integer.parseInt(senderId));
