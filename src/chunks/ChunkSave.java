@@ -26,38 +26,27 @@ public class ChunkSave implements Runnable {
     }
 
     public void run() {
-        try {
             createFolders();
             int stores = 0;
             ChunkInfo chunkInfo = new ChunkInfo(replication);
             ChunkId chunkId = new ChunkId(fileId, chunkNo);
-            RandomAccessFile r = new RandomAccessFile(Utils.storage + "/" + fileId + "/" + chunkNo, "rw");
+
             Peer.addReply(chunkId, chunkInfo);
             Utils.waitTime();
-            if(Peer.peerId.version.equals("1.1")) {
+            if(Peer.peerId.version.equals(Utils.BACKUP_ENHANCE) || Peer.peerId.version.equals(Utils.ALL_ENHANCE)) {
                 stores = Peer.mcChannel.getStoredMessages(fileId, chunkNo);
                 if(stores >= replication) {
                     Peer.deleteReply(chunkId);
                     return;
                 }
             }
-
-            r.write(body);
-            r.close();
-            Disk.occupy(body.length);
-
-            if(Disk.getAvailableSpace() < 0){
-                new Thread(new Reclaim(Disk.getAvailableSpace() * -1)).start();
-            }
+            writeChunk();
 
             //create entry in hashmap of replies
             Peer.addReply(chunkId, new ChunkInfo(replication, stores + 1));
             String header = Channel.createHeader(Type.stored, fileId, chunkNo, -1);
             Peer.sendToChannel(header.getBytes(), Peer.mcChannel);
             System.out.println("Created backup for fileId: " + fileId + " and chunkNo: " + chunkNo);
-        }catch(IOException err){
-            err.printStackTrace();
-        }
     }
 
     private void createFolders(){
@@ -67,5 +56,19 @@ public class ChunkSave implements Runnable {
         file = new File(Utils.storage + "/" + fileId);
         if(!file.exists())
             file.mkdir();
+    }
+
+    private void writeChunk(){
+        try {
+            RandomAccessFile r = new RandomAccessFile(Utils.storage + "/" + fileId + "/" + chunkNo, "rw");
+            r.write(body);
+            r.close();
+            Disk.occupy(body.length);
+            if (Disk.getAvailableSpace() < 0) {
+                new Thread(new Reclaim(Disk.getAvailableSpace() * -1)).start();
+            }
+        }catch (IOException err){
+            err.printStackTrace();
+        }
     }
 }

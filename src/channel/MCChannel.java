@@ -6,6 +6,7 @@ import chunks.ChunkId;
 import chunks.ChunkInfo;
 import chunks.ChunkReclaim;
 import chunks.ChunkSend;
+import client.Service;
 import file.FileInfo;
 import header.Field;
 import header.Type;
@@ -90,7 +91,7 @@ public class MCChannel extends Channel{
     		
         	if (info.confirmations < info.replDegree) {
         		Thread t = new Thread(new ChunkReclaim(id, info));
-        		Peer.addProtocol("CHUNKBACKUP", fileId + " " + chunkNo, t);
+        		Peer.addProtocol(Service.backup, fileId + " " + chunkNo, t);
         		t.run();
         	}   		
     	}else if((key = Utils.getKeysByValue(Peer.getRestorations(), fileInfo)) != null){
@@ -99,7 +100,7 @@ public class MCChannel extends Channel{
                 fileInfo.removedReplication(chunkNo-1);
                 if(!fileInfo.acceptableReplications(chunkNo-1)){
                     Thread t = new Thread(new ChunkReclaim(id, fileInfo.getDesiredReplication(), filePath));
-                    //Peer.addProtocol("CHUNKBACKUP", fileId + " " + chunkNo, t);
+                    Peer.addProtocol(Service.backup, fileId + " " + chunkNo, t);
                     t.start();
                 }
             }

@@ -286,6 +286,10 @@ public class Peer implements RMIService {
         protocols.put(name + " " + identifier, t);
     }
 
+    public static void deleteProtocol(String type, String identifier){
+        protocols.remove(type + " " + identifier);
+    }
+
     private static void printUsage() {
         System.out.println("Wrong number of arguments");
         System.out.println("Usage: java Server.Peer version id RmiName mcAddress mcPort mdbAddress mdbPort mdrAddress mdrPort");

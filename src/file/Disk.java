@@ -35,6 +35,7 @@ public class Disk {
         usedSpace = space;
     }
 
+    //Checks if there are chunksthat can be deleted without dropping below the desired replication
     public static boolean canDeleteChunks(int size){
         HashMap<ChunkId, ChunkInfo> replies = Peer.getReplies();
         int removable = getAvailableSpace();

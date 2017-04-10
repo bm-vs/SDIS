@@ -30,22 +30,7 @@ public class Reclaim extends SubProtocol implements Runnable {
 			Entry<ChunkId, ChunkInfo> chunk = it.next();
 			
 			if (remove_all || chunk.getValue().replDegree > chunk.getValue().confirmations) {
-				File chunk_file = new File(Utils.storage + "/" + chunk.getKey().getFileId() + "/" + chunk.getKey().getChunkNo());
-
-				// get file size & add to space_removed
-				space_removed += (int)chunk_file.length();
-				
-				// send removed
-				String header = Channel.createHeader(Type.removed, chunk.getKey().getFileId(), chunk.getKey().getChunkNo(), -1);
-				Peer.sendToChannel(header.getBytes(), Peer.mcChannel);
-				
-				// remove chunk file from file system
-				try {
-					chunk_file.delete();
-					Disk.free(space_removed);
-				}
-				catch (Exception e) {}
-
+			    space_removed += remove(chunk);
 				// remove chunk info from hash map
 				it.remove();
 			}
@@ -58,5 +43,22 @@ public class Reclaim extends SubProtocol implements Runnable {
 			}
 		}
 	}
+
+	private int remove(Entry<ChunkId, ChunkInfo> chunk ){
+        File chunk_file = new File(Utils.storage + "/" + chunk.getKey().getFileId() + "/" + chunk.getKey().getChunkNo());
+        int size = (int)chunk_file.length();
+        // send removed
+        String header = Channel.createHeader(Type.removed, chunk.getKey().getFileId(), chunk.getKey().getChunkNo(), -1);
+        Peer.sendToChannel(header.getBytes(), Peer.mcChannel);
+
+        try {
+            chunk_file.delete();
+            Disk.free(size);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        return size;
+    }
 
 }

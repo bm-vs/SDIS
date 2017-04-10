@@ -1,8 +1,6 @@
 package chunks;
 
-
 import channel.Channel;
-import header.Field;
 import header.Type;
 import server.Peer;
 import utils.Utils;

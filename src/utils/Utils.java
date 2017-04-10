@@ -3,16 +3,19 @@ package utils;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.HashMap;
-import java.util.Objects;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Utils {
-    private static final int MAX_WAIT_TIME = 400;
+    public static final int MAX_WAIT_TIME = 400;
     public static final int MAX_BODY = 64000;
     public static final int MAX_REPEAT = 5;
+    public static final int TIMER_START = 500;  //in miliseconds
+    public static final String BASE_VERSION = "1.0";
+    public static final String BACKUP_ENHANCE = "1.1";
+    public static final String RESTORE_ENHANCE = "1.2";
+    public static final String SPACE_ENHANCE = "1.3";
+    public static final String ALL_ENHANCE = "2.0";
 
     public static final String storage = "storage";
 
@@ -23,6 +26,22 @@ public class Utils {
         }catch(InterruptedException err){
             err.printStackTrace();
         }
+    }
+
+    public static void sleep(int time){
+        try {
+            Thread.sleep(time);
+        } catch (InterruptedException err){
+            err.printStackTrace();
+        }
+    }
+
+
+    public static boolean maxedRequests(int repeats){
+        if(repeats > Utils.MAX_REPEAT){
+            System.out.println("Maximum number of tries exceeded. Backup shutting down.");
+            return false;
+        } else return true;
     }
 
     public static boolean correctBackup(String filename, int chunks){

@@ -23,7 +23,7 @@ public class FileRestore implements Runnable {
             file.write(body);
             file.close();
         }catch(IOException err){
-            System.err.println(err);
+            err.printStackTrace();
         }
     }
 }

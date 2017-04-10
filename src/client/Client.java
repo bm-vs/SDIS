@@ -18,11 +18,8 @@ public class Client {
             printUsage();
             return;
         }
-
-        // Get the address that we are going to connect to.
         System.out.println("Started client");
 
-        
         // Start RMI
         try {
             Registry registry = LocateRegistry.getRegistry("localhost");
