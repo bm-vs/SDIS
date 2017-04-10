@@ -38,7 +38,7 @@ public class ChunkSend implements Runnable {
         if (Peer.peerId.version.equals("1.1")) {
         	Socket privateSocket;
         	try {
-        		privateSocket = new Socket("127.0.0.1", 222+Integer.parseInt(senderId));
+        		privateSocket = new Socket("127.0.0.1", 2220+Integer.parseInt(senderId));
         	}
         	catch (IOException e){
         		byte[] buf = createPacket(fileName);
