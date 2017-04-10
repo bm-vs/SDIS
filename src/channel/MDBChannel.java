@@ -2,12 +2,15 @@ package channel;
 
 
 import java.net.DatagramPacket;
+import java.util.Set;
 
 import chunks.ChunkSave;
 import file.Disk;
+import file.FileInfo;
 import header.Field;
 import header.Type;
 import server.Peer;
+import utils.Utils;
 
 public class MDBChannel extends Channel{
 
@@ -37,9 +40,19 @@ public class MDBChannel extends Channel{
         if (Peer.threadExists(thread_id)) {
         	Peer.wakeThread(thread_id);
         }
+        if(creator(fileId, replDegree)) return;
+
         if(!Disk.canDeleteChunks(body.length))
             return;
+
+
         ChunkSave store = new ChunkSave(fileId, chunkNo, replDegree, body);
         new Thread(store).start();
+    }
+
+    private boolean creator(String fileId, int replDegree){
+        Set<String> key = Utils.getKeysByValue(Peer.getRestorations(), new FileInfo(fileId, replDegree));
+
+        return key.size() != 0;
     }
 }

@@ -57,7 +57,7 @@ public class ChunkSend implements Runnable {
 	        	
 	        	toServer.writeInt(body.length);
 	        	toServer.write(body);
-                System.out.println("Sent chunk to private socket using TCP.");
+                System.out.println("Sent chunk: " +fileId + "no: " + chunkNo + " through private socket using TCP.");
 
                 // disconnect
 	        	toServer.close();
