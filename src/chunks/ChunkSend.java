@@ -34,7 +34,7 @@ public class ChunkSend implements Runnable {
             Peer.mdrChannel.removeChunk(fileId, chunkNo);
             return;
         }
-        
+
         if (Peer.peerId.getVersion().equals(Utils.RESTORE_ENHANCE) || Peer.peerId.getVersion().equals(Utils.ALL_ENHANCE)) {
         	Socket privateSocket;
         	try {
