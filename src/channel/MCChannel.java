@@ -30,6 +30,7 @@ public class MCChannel extends Channel{
             return false;
         switch(packetHeader[Field.type]){
             case Type.stored:
+            	System.out.println("Stored chunk" + packetHeader[Field.chunkNo] + "in peer:" + packetHeader[Field.senderId]);
                 storedMessage(packetHeader);
                 break;
             case Type.getchunk:
