@@ -30,8 +30,7 @@ public class Restore extends SubProtocol implements Runnable{
         // start private tcp channel
         ServerSocket privateChannel;
     	try {
-    		InetAddress addr = InetAddress.getByName("224.0." + Peer.peerId.id + ".0");
-    		privateChannel = new ServerSocket(6789, 50, addr);
+    		privateChannel = new ServerSocket(222+Peer.peerId.id);
     	}
     	catch (IOException err){
     		err.printStackTrace();

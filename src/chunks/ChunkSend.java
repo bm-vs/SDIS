@@ -39,7 +39,7 @@ public class ChunkSend implements Runnable {
         if (Integer.parseInt(Peer.peerId.version) == 2) {
         	Socket privateSocket;
         	try {
-        		privateSocket = new Socket("224.0." + Integer.parseInt(senderId) + ".0", 6789);
+        		privateSocket = new Socket("127.0.0.1", 222+Integer.parseInt(senderId));
         	}
         	catch (IOException e){
         		byte[] buf = createPacket(fileName);
