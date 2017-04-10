@@ -114,7 +114,7 @@ public class Backup extends SubProtocol implements Runnable {
 
     private void continuation(){
         if(numChunks != 0){
-            System.out.println("Continuing backup from system failure. Proceeding from chunk no: " + numChunks);
+            System.out.println("Continuing backup from system failure. Proceeding from chunk no: " + (numChunks + 1));
             try {
                 in.seek(Utils.MAX_BODY * numChunks);
             }catch(IOException err){

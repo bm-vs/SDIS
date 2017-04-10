@@ -21,6 +21,10 @@ public class FileInfo {
         chunksReplicated.set(chunkNo, chunksReplicated.get(chunkNo)-1);
     }
 
+    public void removeLast(){
+        chunksReplicated.remove(chunksReplicated.size() - 1);
+    }
+
     public boolean acceptableReplications(int chunkNo){
         return chunksReplicated.get(chunkNo) >= desiredReplication;
     }

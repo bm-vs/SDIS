@@ -48,10 +48,8 @@ public class MCChannel extends Channel{
     public synchronized void  startStoredCount(String fileId, int chunkNo, int replDegree){
         ChunkId key = new ChunkId(fileId, chunkNo);
         ChunkInfo value = new ChunkInfo(replDegree);
-		
-        if(Peer.getChunkInfo(key) == null){
-            Peer.addReply(key, value);
-        }
+        Peer.addReply(key, value);
+
     }
 
     public synchronized int getStoredMessages(String fileId, int chunkNo){
@@ -67,8 +65,11 @@ public class MCChannel extends Channel{
         ChunkId id = new ChunkId(fileId, chunkNo);
         ChunkInfo info;
         if ((info = Peer.getChunkInfo(id)) != null){
-            info.addConfirmation();
-            Peer.addReply(id, info);
+            if(!info.alreadySent(args[Field.senderId])) {
+                info.addConfirmation();
+                info.addSender(args[Field.senderId]);
+                Peer.addReply(id, info);
+            }
         }
     }
 	

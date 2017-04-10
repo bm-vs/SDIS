@@ -213,7 +213,9 @@ public class Peer implements RMIService {
                     restorations.put(fileName, fileInfo);
 
                     if(!Utils.correctBackup(fileName, splitInfo.length)){
-                        new Thread(new Backup(fileName, replications, fileId, splitInfo.length)).start();
+                        fileInfo.removeLast();
+                        restorations.put(fileName, fileInfo);
+                        new Thread(new Backup(fileName, replications, fileId, splitInfo.length-1)).start();
                     }
                 }
 
