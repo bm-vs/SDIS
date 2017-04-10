@@ -1,8 +1,7 @@
 package subProtocols;
 
-import java.io.BufferedReader;
+import java.io.DataInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -43,12 +42,17 @@ public class Restore extends SubProtocol implements Runnable{
                 Thread.sleep(10000);
             } catch (InterruptedException err) {
                 byte[] body = Peer.mdrChannel.getChunk(fileId, i);
-                if (body.length == 0) {
+                if (new String(body).length() == 0) {                	
                 	// get body from private channel
                 	try {
                 		Socket privateSocket = privateChannel.accept();
-                		BufferedReader fromClient = new BufferedReader(new InputStreamReader(privateSocket.getInputStream()));
-                		body = fromClient.readLine().getBytes();
+                		
+                		DataInputStream dIn = new DataInputStream(privateSocket.getInputStream());
+                		int length = dIn.readInt();
+                		if(length > 0) {
+                		    body = new byte[length];
+                		    dIn.readFully(body, 0, body.length);
+                		}
                 	}
                 	catch (IOException err2){
                 		err2.printStackTrace();

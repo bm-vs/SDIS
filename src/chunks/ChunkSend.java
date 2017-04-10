@@ -1,5 +1,6 @@
 package chunks;
 
+
 import channel.Channel;
 import header.Type;
 import server.Peer;
@@ -34,7 +35,7 @@ public class ChunkSend implements Runnable {
             return;
         }
         
-        if (Integer.parseInt(Peer.peerId.version) == 2) {
+        if (Peer.peerId.version.equals("1.1")) {
         	Socket privateSocket;
         	try {
         		privateSocket = new Socket("127.0.0.1", 222+Integer.parseInt(senderId));
@@ -46,15 +47,19 @@ public class ChunkSend implements Runnable {
         	}
         	
         	try {
-	    		byte[] header = createEmptyPacket(fileName);
-	        	byte[] body = readChunk(fileName);
+	    		byte[] header = Channel.createHeader(Type.chunk, fileId, chunkNo, -1).getBytes();
+	    		
 	        	Peer.sendToChannel(header, Peer.mdrChannel);
 	        	
 	        	// send body through private channel
 	        	DataOutputStream toServer = new DataOutputStream(privateSocket.getOutputStream());
-	        	toServer.writeBytes(body.toString());
+	        	byte[] body = readChunk(fileName);
+	        	
+	        	toServer.writeInt(body.length);
+	        	toServer.write(body);
 	        	
 	        	// disconnect
+	        	toServer.close();
 	        	privateSocket.close();
         	}
         	catch (IOException e){
@@ -80,18 +85,6 @@ public class ChunkSend implements Runnable {
         }
         return outputStream.toByteArray();
     }
-    
-    private byte[] createEmptyPacket(String filename) {
-    	ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-    	try{
-    		String header = Channel.createHeader(Type.chunk, fileId, chunkNo, -1);
-            byte[] headerArray = header.getBytes();
-            outputStream.write(headerArray);
-    	} catch(IOException err){
-            err.printStackTrace();
-        }
-        return outputStream.toByteArray();
-    }   
     
     private byte[] readChunk(String fileName){
         try {
