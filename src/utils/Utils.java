@@ -40,8 +40,8 @@ public class Utils {
     public static boolean maxedRequests(int repeats){
         if(repeats > Utils.MAX_REPEAT){
             System.out.println("Maximum number of tries exceeded. Backup shutting down.");
-            return false;
-        } else return true;
+            return true;
+        } else return false;
     }
 
     public static boolean correctBackup(String filename, int chunks){
