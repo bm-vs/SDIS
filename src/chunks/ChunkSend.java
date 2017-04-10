@@ -14,12 +14,14 @@ public class ChunkSend implements Runnable {
 	private String senderId;
     private String fileId;
     private int chunkNo;
+    private String senderVersion;
     private byte[] body = new byte[Utils.MAX_BODY];
 
-    public ChunkSend(String senderId, String fileId, int chunkNo){
+    public ChunkSend(String senderId, String fileId, int chunkNo, String senderVersion){
         this.senderId = senderId;
     	this.fileId = fileId;
         this.chunkNo = chunkNo;
+        this.senderVersion = senderVersion;
     }
 
     public void run() {
@@ -35,7 +37,8 @@ public class ChunkSend implements Runnable {
             return;
         }
 
-        if (Peer.peerId.getVersion().equals(Utils.RESTORE_ENHANCE) || Peer.peerId.getVersion().equals(Utils.ALL_ENHANCE)) {
+        if ((Peer.peerId.getVersion().equals(Utils.RESTORE_ENHANCE) || Peer.peerId.getVersion().equals(Utils.ALL_ENHANCE)) && senderVersion.equals(Utils.ALL_ENHANCE))
+        {
         	Socket privateSocket;
         	try {
         		privateSocket = new Socket("127.0.0.1", 2220+Integer.parseInt(senderId));
