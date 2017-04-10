@@ -11,6 +11,8 @@ The run.sh initiates a peer with default addresses and ports and can be run by u
 ./run.sh <version> <serverId> <rmiName>
 
 
+For manually initializing the peer, it is necessary to be in the 'out' folder creted by running the script build.sh
+
 =====================================================================================================
 
 
@@ -48,7 +50,8 @@ java client.Client <rmiName> RECLAIM <space>
 java client.Client <rmiName> SPACE <space>
 java client.Client <rmiName> STATE
 
-with rmiName being the same as the peer the client is going to be associated with
+with rmiName being the same as the peer the client is going to be associated with.
+These commands must be run inside the folder 'out' where the class files are located.
 
 
 =====================================================================================================
