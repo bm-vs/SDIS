@@ -30,7 +30,7 @@ public class Restore extends SubProtocol implements Runnable{
         // start private tcp channel
         ServerSocket privateChannel;
     	try {
-    		privateChannel = new ServerSocket(2222+Peer.peerId.id);
+    		privateChannel = new ServerSocket(2220+Peer.peerId.id);
     	}
     	catch (IOException err){
     		err.printStackTrace();
