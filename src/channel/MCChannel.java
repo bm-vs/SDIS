@@ -58,25 +58,21 @@ public class MCChannel extends Channel{
         ChunkId key = new ChunkId(fileId, chunkNo);
         ChunkInfo c = Peer.getChunkInfo(key);
         Peer.deleteReply(key);
-        return c.confirmations;
+        return c.getConfirmations();
     }
 
-    public synchronized void storedMessage(String[] args){
+    private synchronized void storedMessage(String[] args){
         String fileId = args[3];
         int chunkNo = Integer.parseInt(args[4]);
         ChunkId id = new ChunkId(fileId, chunkNo);
         ChunkInfo info;
         if ((info = Peer.getChunkInfo(id)) != null){
-            info.confirmations++;
+            info.addConfirmation();
             Peer.addReply(id, info);
         }
     }
-
-    public void resetStored(ChunkId chunkId){
-
-    }
 	
-    public void removedChunk(String[] args) {
+    private void removedChunk(String[] args) {
     	String fileId = args[Field.fileId];
     	int chunkNo = Integer.parseInt(args[Field.chunkNo]);
 
@@ -86,10 +82,10 @@ public class MCChannel extends Channel{
     	Set<String> key;
         FileInfo fileInfo = new FileInfo(fileId, 0);
     	if ((info = Peer.getChunkInfo(id)) != null) {
-    		info.confirmations--;
+    		info.removeConfirmation();
     		Peer.addReply(id, info);
     		
-        	if (info.confirmations < info.replDegree) {
+        	if (info.getConfirmations() < info.getReplDegree()) {
         		Thread t = new Thread(new ChunkReclaim(id, info));
         		Peer.addProtocol(Service.backup, fileId + " " + chunkNo, t);
         		t.run();

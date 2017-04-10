@@ -4,6 +4,7 @@ import channel.*;
 
 import chunks.ChunkId;
 import chunks.ChunkInfo;
+import client.Service;
 import file.Disk;
 import file.FileInfo;
 import org.omg.CORBA.INTERNAL;
@@ -24,14 +25,11 @@ import java.util.HashMap;
 
 public class Peer implements RMIService {
 
-    private static final String INDEXFILE = "index.txt";
-
-    public static MulticastSocket socket;
+    private static MulticastSocket socket;
 
     //stored messages received by peers that have the corresponding chunk
     private static HashMap<ChunkId, ChunkInfo> replies = new HashMap<>();
 
-    //TODO
     //saves fileId and thread of the subprotocol process
     //when creating thread puts it into this hashmap
     private static HashMap<String, Thread> protocols = new HashMap<>();
@@ -46,10 +44,6 @@ public class Peer implements RMIService {
     public static Channel mdrChannel;
 
     public static PeerId peerId;
-
-    public static Thread mcThread;
-    public static Thread mdbThread;
-    public static Thread mdrThread;
 
     public static void main(String[] args) {
 
@@ -70,9 +64,9 @@ public class Peer implements RMIService {
         initRMI();
         replies = new HashMap<>();
 
-        mcThread = new Thread(mcChannel);
-        mdbThread = new Thread(mdbChannel);
-        mdrThread = new Thread(mdrChannel);
+        Thread mcThread = new Thread(mcChannel);
+        Thread mdbThread = new Thread(mdbChannel);
+        Thread mdrThread = new Thread(mdrChannel);
         mcThread.start();
         mdbThread.start();
         mdrThread.start();
@@ -147,12 +141,12 @@ public class Peer implements RMIService {
     private static void saveRepliesToFile() {
         BufferedWriter out;
         try {
-            FileWriter fstream = new FileWriter(INDEXFILE);
+            FileWriter fstream = new FileWriter(Utils.INDEXFILE);
             out = new BufferedWriter(fstream);
 
             for (ChunkId key: replies.keySet()) {
                 out.write(key.getFileId() + " " + ((Integer) key.getChunkNo()).toString() + "\n");
-                out.write(replies.get(key).replDegree + " " + replies.get(key).confirmations + "\n");
+                out.write(replies.get(key).getReplDegree() + " " + replies.get(key).getConfirmations() + "\n");
             }
 
             out.close();
@@ -165,13 +159,13 @@ public class Peer implements RMIService {
     private static void saveInitiator(){
         BufferedWriter out;
         try {
-            FileWriter fstream = new FileWriter("initiator.txt");
+            FileWriter fstream = new FileWriter(Utils.INITIATOR);
             out = new BufferedWriter(fstream);
 
             for (String key: restorations.keySet()) {
                 FileInfo fileInfo = restorations.get(key);
-                out.write(key + "\n" + fileInfo.fileId + "\n" + fileInfo.getDesiredReplication() + "\n");
-                for (int replications:fileInfo.chunksReplicated) {
+                out.write(key + "\n" + fileInfo.getFileId() + "\n" + fileInfo.getDesiredReplication() + "\n");
+                for (int replications:fileInfo.getChunksReplicated()) {
                     out.write(replications + " ");
                 }
                 out.newLine();
@@ -187,7 +181,7 @@ public class Peer implements RMIService {
     private static void loadInitiator(){
         BufferedReader buffer;
         try {
-            buffer = new BufferedReader(new FileReader("initiator.txt"));
+            buffer = new BufferedReader(new FileReader(Utils.INITIATOR));
         }catch(FileNotFoundException err){
             return;
         }
@@ -206,7 +200,7 @@ public class Peer implements RMIService {
                 FileInfo fileInfo = new FileInfo(fileId, replications);
                 info = buffer.readLine();
                 if(info.isEmpty()){
-                    if(peerId.version.equals("1.1")){
+                    if(peerId.getVersion().equals(Utils.SPACE_ENHANCE) || peerId.getVersion().equals(Utils.ALL_ENHANCE)){
                         new Thread(new Backup(fileName, replications)).start();
                     }
                 } else {
@@ -233,7 +227,7 @@ public class Peer implements RMIService {
     private static void loadFile(){
         BufferedReader buffer;
         try {
-            buffer = new BufferedReader(new FileReader(INDEXFILE));
+            buffer = new BufferedReader(new FileReader(Utils.INDEXFILE));
         }catch(FileNotFoundException err){
             return;
         }
@@ -292,15 +286,14 @@ public class Peer implements RMIService {
 
     private static void printUsage() {
         System.out.println("Wrong number of arguments");
-        System.out.println("Usage: java Server.Peer version id RmiName mcAddress mcPort mdbAddress mdbPort mdrAddress mdrPort");
+        System.out.println("Usage: java server.Peer version id RmiName mcAddress mcPort mdbAddress mdbPort mdrAddress mdrPort");
     }
 
-    //TODO
     //is it useful to add threads to hashmap since you cannot interrupt sleep during backup?
     public boolean backup(String file, int replDegree) {
         Backup backup = new Backup(file, replDegree);
         Thread t = new Thread(backup);
-        protocols.put("BACKUP " + backup.getFileId(), t);
+        addProtocol(Service.backup, backup.getFileId(), t);
         t.start();
         return true;
     }
@@ -308,7 +301,7 @@ public class Peer implements RMIService {
     public boolean restore(String file) {
         Restore restore = new Restore(file);
         Thread t = new Thread(restore);
-        protocols.put("RESTORE " + restore.getFileId(), t);
+        addProtocol(Service.restore, restore.getFileId(), t);
         t.start();
         return true;
     }
@@ -316,7 +309,7 @@ public class Peer implements RMIService {
     public boolean delete(String file) {
         Delete delete = new Delete(file);
         Thread t = new Thread(delete);
-        protocols.put("DELETE " + delete.getFileId(), t);
+        addProtocol(Service.delete, delete.getFileId(), t);
         t.start();
         return true;
     }
@@ -324,7 +317,7 @@ public class Peer implements RMIService {
     public boolean reclaim(int space) {
         Reclaim reclaim = new Reclaim(space);
         Thread t = new Thread(reclaim);
-        protocols.put("RECLAIM " + reclaim.getFileId(), t);
+        addProtocol(Service.reclaim, String.valueOf(space), t);
         t.start();
         return true;
     }

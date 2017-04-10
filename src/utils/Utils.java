@@ -17,6 +17,11 @@ public class Utils {
     public static final String SPACE_ENHANCE = "1.3";
     public static final String ALL_ENHANCE = "2.0";
 
+    public static final String INDEXFILE = "index.txt";
+    public static final String INITIATOR = "initiator.txt";
+
+
+
     public static final String storage = "storage";
 
     public static void waitTime(){

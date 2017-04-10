@@ -3,10 +3,15 @@ package server;
 
 public class PeerId {
     public int id;
-    public String version;
-    public PeerId(int id, String version){
+    private String version;
+
+    PeerId(int id, String version){
         this.id = id;
         this.version = version;
+    }
+
+    public String getVersion(){
+        return version;
     }
 
     public String toString(){

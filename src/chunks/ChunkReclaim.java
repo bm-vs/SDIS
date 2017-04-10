@@ -4,7 +4,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.net.DatagramPacket;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -17,14 +16,14 @@ import utils.Utils;
 public class ChunkReclaim implements Runnable {
     private String filePath;
     private int replication;
-    ChunkId id;
+    private ChunkId id;
     private boolean original;
     private int time = 1000;
     private int repeats = 0;
 
     public ChunkReclaim(ChunkId id, ChunkInfo info) {
         this.id = id;
-        this.replication = info.replDegree;
+        this.replication = info.getReplDegree();
         this.original = false;
     }
 
@@ -43,12 +42,16 @@ public class ChunkReclaim implements Runnable {
             Thread.sleep(time);
         } catch (InterruptedException err) {
             // if putchunk received end thread unless enhancement is activated
-            if(Peer.peerId.version.equals(Utils.SPACE_ENHANCE) || Peer.peerId.version.equals(Utils.ALL_ENHANCE)){
-                if(enhancement())
+            if(Peer.peerId.getVersion().equals(Utils.SPACE_ENHANCE) || Peer.peerId.getVersion().equals(Utils.ALL_ENHANCE)){
+                if(enhancement()) {
+                    Peer.deleteProtocol(Service.backup, id.getFileId());
                     return;
-                else run();
+                } else run();
 
-            }else return;
+            }else {
+                Peer.deleteProtocol(Service.backup, id.getFileId());
+                return;
+            }
         }
 
         System.out.println("Started backup following removal of chunks by a connected peer");
@@ -61,6 +64,7 @@ public class ChunkReclaim implements Runnable {
         }
         File file = new File(fileName);
         if (!file.exists()) {
+            Peer.deleteProtocol(Service.backup, id.getFileId());
             return;
         }
 
@@ -89,7 +93,7 @@ public class ChunkReclaim implements Runnable {
         }catch(InterruptedException err){}
         this.time *= 2;
         this.repeats++;
-        int confirmations = Peer.getReplies().get(id).confirmations;
+        int confirmations = Peer.getReplies().get(id).getConfirmations();
         return confirmations >= replication && this.repeats >= Utils.MAX_REPEAT;
 
     }

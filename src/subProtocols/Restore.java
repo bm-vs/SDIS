@@ -6,6 +6,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 import channel.Channel;
+import client.Service;
 import file.FileInfo;
 import file.FileRestore;
 import header.Type;
@@ -15,12 +16,13 @@ public class Restore extends SubProtocol implements Runnable{
 
     public Restore(String filePath){
         super(filePath);
-        fileId = Peer.getRestorations().get(filePath).fileId;
+        fileId = Peer.getRestorations().get(filePath).getFileId();
     }
 
     public void run() {
         FileInfo fileInfo;
         if ((fileInfo = Peer.getRestorations().get(filePath)) == null) {
+            Peer.deleteProtocol(Service.restore, fileId);
             return;
         }
         int i = 1;
@@ -28,15 +30,16 @@ public class Restore extends SubProtocol implements Runnable{
         // start private tcp channel
         ServerSocket privateChannel;
     	try {
-    		privateChannel = new ServerSocket(222+Peer.peerId.id);
+    		privateChannel = new ServerSocket(2222+Peer.peerId.id);
     	}
     	catch (IOException err){
     		err.printStackTrace();
-    		return;
+            Peer.deleteProtocol(Service.restore, fileId);
+            return;
     	}
         
-        while (i <= fileInfo.chunksReplicated.size()) {
-            String header = Channel.createHeader(Type.getchunk, fileInfo.fileId, i, -1);
+        while (i <= fileInfo.getChunksReplicated().size()) {
+            String header = Channel.createHeader(Type.getchunk, fileInfo.getFileId(), i, -1);
             Peer.sendToChannel(header.getBytes(), Peer.mcChannel);
             try {
                 Thread.sleep(10000);
@@ -72,5 +75,7 @@ public class Restore extends SubProtocol implements Runnable{
     		err3.printStackTrace();
     	}
         System.out.println("Restore completed");
+        Peer.deleteProtocol(Service.restore, fileId);
+
     }
 }

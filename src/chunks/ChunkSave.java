@@ -33,7 +33,7 @@ public class ChunkSave implements Runnable {
 
             Peer.addReply(chunkId, chunkInfo);
             Utils.waitTime();
-            if(Peer.peerId.version.equals(Utils.BACKUP_ENHANCE) || Peer.peerId.version.equals(Utils.ALL_ENHANCE)) {
+            if(Peer.peerId.getVersion().equals(Utils.BACKUP_ENHANCE) || Peer.peerId.getVersion().equals(Utils.ALL_ENHANCE)) {
                 stores = Peer.mcChannel.getStoredMessages(fileId, chunkNo);
                 if(stores >= replication) {
                     Peer.deleteReply(chunkId);

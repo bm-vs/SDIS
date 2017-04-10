@@ -35,10 +35,10 @@ public class ChunkSend implements Runnable {
             return;
         }
         
-        if (Peer.peerId.version.equals("1.1")) {
+        if (Peer.peerId.getVersion().equals(Utils.RESTORE_ENHANCE) || Peer.peerId.getVersion().equals(Utils.ALL_ENHANCE)) {
         	Socket privateSocket;
         	try {
-        		privateSocket = new Socket("127.0.0.1", 222+Integer.parseInt(senderId));
+        		privateSocket = new Socket("127.0.0.1", 2222+Integer.parseInt(senderId));
         	}
         	catch (IOException e){
         		byte[] buf = createPacket(fileName);
@@ -57,8 +57,9 @@ public class ChunkSend implements Runnable {
 	        	
 	        	toServer.writeInt(body.length);
 	        	toServer.write(body);
-	        	
-	        	// disconnect
+                System.out.println("Sent chunk to private socket using TCP.");
+
+                // disconnect
 	        	toServer.close();
 	        	privateSocket.close();
         	}
@@ -69,6 +70,7 @@ public class ChunkSend implements Runnable {
         else {
         	byte[] buf = createPacket(fileName);
         	Peer.sendToChannel(buf, Peer.mdrChannel);
+            System.out.println("Sent chunk: " + fileId + " no: " + chunkNo);
         }
     }
 

@@ -35,13 +35,13 @@ public class Disk {
         usedSpace = space;
     }
 
-    //Checks if there are chunksthat can be deleted without dropping below the desired replication
+    //Checks if there are enough chunks that can be deleted without dropping below the desired replication
     public static boolean canDeleteChunks(int size){
         HashMap<ChunkId, ChunkInfo> replies = Peer.getReplies();
         int removable = getAvailableSpace();
         for (ChunkId id : replies.keySet()) {
             ChunkInfo info = replies.get(id);
-            if(info.confirmations > info.replDegree){
+            if(info.getConfirmations() > info.getReplDegree()){
                 File file = new File(Utils.storage + "/" + id.getFileId() + "/" + id.getChunkNo());
                 removable += file.length();
                 if(removable >= size)

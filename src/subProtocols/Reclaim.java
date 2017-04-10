@@ -7,6 +7,7 @@ import java.util.Map.Entry;
 import channel.Channel;
 import chunks.ChunkId;
 import chunks.ChunkInfo;
+import client.Service;
 import file.Disk;
 import header.Type;
 import server.Peer;
@@ -29,7 +30,7 @@ public class Reclaim extends SubProtocol implements Runnable {
         while (space_removed < spaceToRemove && Peer.getReplies().size() > 0) {
 			Entry<ChunkId, ChunkInfo> chunk = it.next();
 			
-			if (remove_all || chunk.getValue().replDegree > chunk.getValue().confirmations) {
+			if (remove_all || chunk.getValue().getReplDegree() > chunk.getValue().getConfirmations()) {
 			    space_removed += remove(chunk);
 				// remove chunk info from hash map
 				it.remove();
@@ -42,6 +43,7 @@ public class Reclaim extends SubProtocol implements Runnable {
 				remove_all = true;
 			}
 		}
+		Peer.deleteProtocol(Service.reclaim, String.valueOf(spaceToRemove));
 	}
 
 	private int remove(Entry<ChunkId, ChunkInfo> chunk ){
@@ -51,6 +53,7 @@ public class Reclaim extends SubProtocol implements Runnable {
         String header = Channel.createHeader(Type.removed, chunk.getKey().getFileId(), chunk.getKey().getChunkNo(), -1);
         Peer.sendToChannel(header.getBytes(), Peer.mcChannel);
 
+        System.out.println("Removed chunk: " + chunk.getKey().getFileId() + " numChunk: " + chunk.getKey().getChunkNo());
         try {
             chunk_file.delete();
             Disk.free(size);

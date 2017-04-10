@@ -29,7 +29,6 @@ public class MDRChannel extends Channel {
     }
 
     private void handleCHUNK(String[] packetHeader, byte[]body){
-        //TODO
         //verify header for fileID and chunkNo
         String thread = "RESTORE " + packetHeader[Field.fileId];
         ChunkId key = new ChunkId(packetHeader[Field.fileId], Integer.parseInt(packetHeader[Field.chunkNo]));

@@ -4,9 +4,9 @@ import java.util.ArrayList;
 
 public class FileInfo {
 
-    public String fileId;
+    private String fileId;
     private int desiredReplication;
-    public ArrayList<Integer> chunksReplicated = new ArrayList<>();
+    private ArrayList<Integer> chunksReplicated = new ArrayList<>();
 
     public FileInfo(String fileId, int desiredReplication){
         this.fileId = fileId;
@@ -27,6 +27,14 @@ public class FileInfo {
 
     public int getDesiredReplication(){
         return desiredReplication;
+    }
+
+    public String getFileId(){
+        return fileId;
+    }
+
+    public ArrayList<Integer> getChunksReplicated(){
+        return chunksReplicated;
     }
 
     @Override
