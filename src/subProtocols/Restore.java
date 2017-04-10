@@ -1,5 +1,12 @@
 package subProtocols;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+
 import channel.Channel;
 import file.FileInfo;
 import file.FileRestore;
@@ -19,6 +26,17 @@ public class Restore extends SubProtocol implements Runnable{
             return;
         }
         int i = 1;
+        
+        // start private tcp channel
+        ServerSocket privateChannel;
+    	try {
+    		privateChannel = new ServerSocket(222+Peer.peerId.id);
+    	}
+    	catch (IOException err){
+    		err.printStackTrace();
+    		return;
+    	}
+        
         while (i <= fileInfo.chunksReplicated.size()) {
             String header = Channel.createHeader(Type.getchunk, fileInfo.fileId, i, -1);
             Peer.sendToChannel(header.getBytes(), Peer.mcChannel);
@@ -26,11 +44,30 @@ public class Restore extends SubProtocol implements Runnable{
                 Thread.sleep(10000);
             } catch (InterruptedException err) {
                 byte[] body = Peer.mdrChannel.getChunk(fileId, i);
+                if (body.length == 0) {
+                	// get body from private channel
+                	try {
+                		Socket privateSocket = privateChannel.accept();
+                		BufferedReader fromClient = new BufferedReader(new InputStreamReader(privateSocket.getInputStream()));
+                		body = fromClient.readLine().getBytes();
+                	}
+                	catch (IOException err2){
+                		err2.printStackTrace();
+                	}
+                }
+                
                 new Thread(new FileRestore(filePath, body)).start();
                 System.out.println("Chunk " + i + " transfered.");
                 i++;
             }
         }
+        
+        try {
+        	privateChannel.close();
+        }
+        catch (IOException err3){
+    		err3.printStackTrace();
+    	}
         System.out.println("Restore completed");
     }
 }
