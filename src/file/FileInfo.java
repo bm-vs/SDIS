@@ -36,7 +36,7 @@ public class FileInfo {
                 "\nChunks:\n";
         String chunks = "";
         for (int i = 0; i < chunksReplicated.size(); i++) {
-            chunks += "     No: " + i + " has been replicated " + chunksReplicated.get(i) + " time(s)\n";
+            chunks += "     No: " + (i+1) + " has been replicated " + chunksReplicated.get(i) + " time(s)\n";
         }
         return header + chunks;
     }

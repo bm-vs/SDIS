@@ -69,6 +69,9 @@ public class MCChannel extends Channel{
             info.confirmations++;
             Peer.addReply(id, info);
         }
+    }
+
+    public void resetStored(ChunkId chunkId){
 
     }
 	

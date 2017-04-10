@@ -53,9 +53,6 @@ public class Peer implements RMIService {
 
     public static void main(String[] args) {
 
-        Disk.analyzeUsedSpace();
-        System.out.println("Storage space is: " + Disk.usedSpace);
-
         try {
             socket = new MulticastSocket();
         }catch(IOException err){
@@ -65,10 +62,11 @@ public class Peer implements RMIService {
         if(args.length != 9){
             printUsage();
             return;
-        } else{
-            init(args);
         }
 
+        Disk.analyzeUsedSpace();
+
+        init(args);
         initRMI();
         replies = new HashMap<>();
 
@@ -80,6 +78,7 @@ public class Peer implements RMIService {
         mdrThread.start();
         loadFile();
         loadInitiator();
+
         System.out.println("Initialized Peer " + args[1]);
 
     }
@@ -319,17 +318,17 @@ public class Peer implements RMIService {
     }
 
     public boolean reclaim(int space) {
-        //Reclaim reclaim = new Reclaim(space);
-        //Thread t = new Thread(reclaim);
-        //protocols.put("RECLAIM " + reclaim.getFileId(), t);
-        //t.start();
+        Reclaim reclaim = new Reclaim(space);
+        Thread t = new Thread(reclaim);
+        protocols.put("RECLAIM " + reclaim.getFileId(), t);
+        t.start();
         return true;
     }
 
     public boolean space(int space){
         Disk.setMaxSpace(space);
         if(Disk.getAvailableSpace() < 0){
-
+            reclaim(Disk.getAvailableSpace()*-1);
         }
         return true;
     }
@@ -347,6 +346,10 @@ public class Peer implements RMIService {
             state += "Size: " + Disk.getChunkSize(info.getKey()) + "\n";
             state += info.getValue();
         }
+
+        state += "\nTotal disk space is: " + Disk.getMaxSpace();
+        state += "\nUsed disk space is: " + Disk.getUsedSpace();
+        state += "\nAvailable disk space is: " + Disk.getAvailableSpace() + "\n";
         return state;
     }
 }
