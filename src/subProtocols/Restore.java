@@ -45,7 +45,7 @@ public class Restore extends SubProtocol implements Runnable{
                 Thread.sleep(10000);
             } catch (InterruptedException err) {
                 byte[] body = Peer.mdrChannel.getChunk(fileId, i);
-                if (new String(body).length() == 0) {                	
+                if (body.length == 0) {
                 	// get body from private channel
                 	try {
                 		Socket privateSocket = privateChannel.accept();
